@@ -13,7 +13,7 @@ def upload_image(image, photo_title, photo_id):
     result = process_image(image, photo_title, photo_id, upload_to_minio)
     logger.info(f"Image processed and saved to bucket: {result['bucket']}, file: {result['file_name']}")
     url = get_presigned_url(result["bucket"], result["file_name"])
-    return f"<img src='{url}' style='width: 100%; max-width: 1080px; height: auto;'/>"
+    return f"<img src='{url}' style='max-width: 1080px; height: auto;'/>"
 
 def list_images():
     logger.info("Fetching image list...")

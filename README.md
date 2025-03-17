@@ -1,5 +1,24 @@
 # face_play
 ---
+### Settings
+- `.env` sample
+```python
+MINIO_ENDPOINT=www.leebalso.org:9000
+MINIO_ACCESS_KEY=OwnKCLf4NR7905uuv3pI
+MINIO_SECRET_KEY=nGhCbM81UHXuyblbMaizDURhUpZYL5h3lBLPyrQO
+MINIO_SECURE=false
+MINIO_PROCESSED_IMAGE_BUCKET=processed-images
+QDRANT_HOST=192.168.0.4
+QDRANT_PORT=6333
+BUFFALO_L_PATH=C:\
+```
+---
+### Installation
+#### 1. MinIO
+##### 1-1. for windows
+- MinIO : https://min.io/docs/minio/windows/index.html
+  Run Command : `.\minio.exe server C:\minio --console-address :9001`
+##### 1-2. Docker container
 - MinIO docker compose
 ```yaml
 version: '3.8'
@@ -20,6 +39,16 @@ services:
 volumes:
   minio_data:
 ```
+##### 1-3. Init
+- Create Bucket
+  Bucker name : `processed-images`
+- Create access key
+  Create and paste them to `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` in `.env`
+#### 2. Qdrant
+##### 2-1. for windows
+- Qdrant : https://github.com/qdrant/qdrant/releases
+  Run Command : `.\qdrant.exe --uri http://127.0.0.1:6333`
+##### 2-2. Docker container
 - Qdrant docker compose
 ```yaml
 version: "3.8"
@@ -36,14 +65,13 @@ volumes:
   qdrant_data:
     driver: local
 ```
-- `.env` sample
-```python
-MINIO_ENDPOINT=www.leebalso.org:9000
-MINIO_ACCESS_KEY=OwnKCLf4NR7905uuv3pI
-MINIO_SECRET_KEY=nGhCbM81UHXuyblbMaizDURhUpZYL5h3lBLPyrQO
-MINIO_SECURE=false
-MINIO_PROCESSED_IMAGE_BUCKET=processed-images
-QDRANT_HOST=192.168.0.4
-QDRANT_PORT=6333
-BUFFALO_L_PATH=C:\
-```
+##### 2-3. Init
+- Create Collection
+  For Windows :
+  ```bash
+  curl -X PUT "http://127.0.0.1:6333/collections/face_embeddings" -H "Content-Type: application/json" -d "{\"vectors\":{\"size\":512,\"distance\":\"Cosine\"}}"
+  ```
+  - Response : 
+  ```json
+  {"result":true,"status":"ok","time":0.3824695}
+  ```
