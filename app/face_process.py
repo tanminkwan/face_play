@@ -1,15 +1,18 @@
-from app.db_process import save_face_data
+import uuid
 import cv2
-import insightface
-from config import BUFFALO_L_PATH, MINIO_PROCESSED_IMAGE_BUCKET
+from config import MINIO_PROCESSED_IMAGE_BUCKET
+from app.db_interface import QdrantDatabase
+from app import BASE_IMAGE, BASE_FACE, face_detector, face_swapper
 
-model = insightface.app.FaceAnalysis(name='buffalo_l', root=BUFFALO_L_PATH)
-model.prepare(ctx_id=0)
+db = QdrantDatabase()  # Initialize the database interface
 
 def process_image(image, photo_title, photo_id, upload_to_minio_func):
+    
     img = cv2.imread(image)
-    faces = model.get(img)
+    faces = face_detector.get(img)
     faces = sorted(faces, key=lambda face: face.bbox[0])
+
+    file_name = f"{str(uuid.uuid4())}.jpg"
 
     for i, face in enumerate(faces):
 
@@ -24,11 +27,41 @@ def process_image(image, photo_title, photo_id, upload_to_minio_func):
         cv2.putText(img, f"Gender: {face.gender}", (bbox[0] + 5, bbox[1] + 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 2)
 
         # Save face data to Qdrant
-        save_face_data(photo_title, photo_id, i, int(face.age), int(face.gender), face.embedding.tolist())
+        id = str(uuid.uuid4())
+        db.save_face_data(
+            id = id, 
+            photo_title = photo_title, 
+            photo_id = photo_id, 
+            face_index = i, 
+            age = int(face.age), 
+            gender = int(face.gender), 
+            file_name = file_name, 
+            embedding = face.embedding.tolist()
+            )
+
+        # Save face image to MinIO
+        base_image = BASE_IMAGE[int(face.gender)]
+        base_face = BASE_FACE[int(face.gender)]
+
+        img_face = face_swapper.get(base_image, base_face, face)
+        upload_to_minio_func(img_face, MINIO_PROCESSED_IMAGE_BUCKET, f"{id}.jpg")
 
     # Save processed image to MinIO
-    file_name = f"{photo_id}_processed.jpg"
-    bucket = MINIO_PROCESSED_IMAGE_BUCKET
-    upload_to_minio_func(img, bucket, file_name)
+    upload_to_minio_func(img, MINIO_PROCESSED_IMAGE_BUCKET, file_name)
 
-    return {"bucket": bucket, "file_name": file_name}
+    return {"bucket": MINIO_PROCESSED_IMAGE_BUCKET, "file_name": file_name}
+
+def get_image_list(file_name):
+    results = db.get_data(file_name=file_name)
+    images = [
+        {
+            "id": item["id"],
+            "photo_id": item["photo_id"],
+            "photo_title": item["photo_title"],
+            "age": item["age"],
+            "gender": item["gender"],
+            "face_index": item["face_index"]
+        }
+        for item in results
+    ]
+    return images

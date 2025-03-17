@@ -2,8 +2,8 @@ import os
 import logging
 import gradio as gr
 import pandas as pd
-from app.face_process import process_image
-from app.file_process import get_image_list, get_presigned_url, upload_to_minio
+from app.face_process import process_image, get_image_list
+from app.file_process import get_presigned_url, upload_to_minio
 from config import MINIO_PROCESSED_IMAGE_BUCKET
 
 logging.basicConfig(level=logging.INFO)
@@ -16,43 +16,28 @@ def upload_image(image, photo_title, photo_id):
     url = get_presigned_url(result["bucket"], result["file_name"])
     return f"<img src='{url}' style='max-width: 1080px; height: auto;'/>"
 
-def list_images():
-    logger.info("Fetching image list...")
-    images = get_image_list()
+def list_images(file_name):
+    logger.info(f"Fetching image list for file_name: {file_name}")
+    images = get_image_list(file_name)
     logger.info(f"Retrieved {len(images)} images.")
+    return pd.DataFrame(images, columns=["id", "photo_id", "photo_title", "age", "gender", "face_index"])
 
-    # 예: 최대 10개만 추출
-    data = images[:10]
-
-    # Pandas DataFrame으로 변환
-    df = pd.DataFrame(data, columns=["photo_id", "photo_title"])
-    df.columns = ["Photo ID", "Photo Title"]  # 컬럼명 변경
-    return df
-
-def on_row_click(value, evt: gr.SelectData):
-    """
-    DataFrame에서 특정 행이 클릭되면 호출되는 핸들러.
-    - value: DataFrame이 들고 있는 전체 값 (굳이 안 써도 됨)
-    - evt: Gradio가 넘겨주는 이벤트 정보. evt.value가 클릭된 행의 데이터(dict 형태).
-    """
-    logger.info(f"[on_row_click] Entire value:\n{value}")
+def on_row_click(evt: gr.SelectData):
     logger.info(f"[on_row_click] Event data:\n{evt}")
-
-    if evt.value is None:
+    if not evt.value:
         return ""
-    selected_row = evt.value  # 딕셔너리 형태. 예: {"Photo ID": "xxx", "Photo Title": "yyy"}
-    photo_id = selected_row.get("Photo ID", "")
-    logger.info(f"Selected Photo ID: {photo_id}")
-    return photo_id
+    # Suppose your DataFrame columns are ["id", "photo_id", "photo_title", "age", "gender", "face_index"]
+    row_data = evt.value  # This might be a list like ["abc123", "my-photo-id", ...]
+    
+    # The ID would be row_data[0] if the first column is "id"
+    selected_id = row_data
+    return str(selected_id)
 
-def view_image_details(photo_id):
-    """
-    선택된 Photo ID로 실제 이미지를 조회한 뒤 <img> 태그를 반환
-    """
-    logger.info(f"Fetching details for photo ID: {photo_id}")
-    if not photo_id:
-        return "<p>No Photo ID selected.</p>"
-    url = get_presigned_url(MINIO_PROCESSED_IMAGE_BUCKET, f"{photo_id}_processed.jpg")
+def view_image_details(id):
+    logger.info(f"Fetching details for ID: {id}")
+    if not id:
+        return "<p>No ID selected.</p>"
+    url = get_presigned_url(MINIO_PROCESSED_IMAGE_BUCKET, f"{id}.jpg")
     return f"<img src='{url}' style='max-width: 1080px; height: auto;'/>"
 
 if __name__ == "__main__":
@@ -73,33 +58,33 @@ if __name__ == "__main__":
             )
 
         with gr.Tab("Image List"):
+            file_name_input = gr.Textbox(label="File Name", placeholder="Enter file name to filter")
             refresh_button = gr.Button("Refresh List")
 
-            # DataFrame 컴포넌트. interactive=True를 설정하면 사용자가 행을 클릭할 수 있음
             image_list = gr.Dataframe(
-                headers=["Photo ID", "Photo Title"],
+                headers=["ID", "Photo ID", "Photo Title", "Age", "Gender", "Face Index"],
                 value=[],
                 interactive=True
             )
-            selected_photo_id = gr.Textbox(visible=False)
+            selected_id = gr.Textbox(visible=False)  # Hidden Textbox to store id
 
-            # "Refresh List" 버튼을 누르면 list_images()를 실행해 DataFrame 갱신
             refresh_button.click(
                 fn=list_images,
+                inputs=file_name_input,
                 outputs=image_list
             )
 
-            # DataFrame의 행을 클릭하면 on_row_click 이벤트 핸들러가 실행됨
             image_list.select(
-                fn=on_row_click,
-                outputs=selected_photo_id
+                fn=on_row_click,  # Function to extract id
+                inputs=None,             # typically None here
+                outputs=selected_id  # Store the result in the hidden Textbox
             )
 
             details_button = gr.Button("View Details")
             details_output = gr.HTML(label="Image Details")
             details_button.click(
-                fn=view_image_details,
-                inputs=selected_photo_id,
+                fn=view_image_details,  # Function to fetch and display image
+                inputs=selected_id,  # Pass the hidden Textbox value as input
                 outputs=details_output
             )
 

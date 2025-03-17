@@ -16,7 +16,7 @@ QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
 QDRANT_PORT = int(os.getenv("QDRANT_PORT", 6333))
 
 # InsightFace configuration
-BUFFALO_L_PATH = os.getenv("BUFFALO_L_PATH", "C:\\")
-# 모델 경로 설정
+BUFFALO_L_PATH = "C:\\"
+INSWAPPER_PATH = "C:\\models\\inswapper_128.onnx"
 CODEFORMER_MODEL = "CodeFormer/weights/CodeFormer/codeformer.pth"
 

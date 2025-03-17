@@ -41,7 +41,8 @@ volumes:
 ```
 ##### 1-3. Init
 - Create Bucket
-  Bucker name : `processed-images`
+  Bucker name : `processed-images`, `base-images`
+  Upload Base images : `f_base.jpg`, `m_base.jpg` 를 `base-images` bucket에 upload
 - Create access key
   Create and paste them to `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` in `.env`
 #### 2. Qdrant
@@ -75,3 +76,10 @@ volumes:
   ```json
   {"result":true,"status":"ok","time":0.3824695}
   ```
+##### 2-3. 주요쿼리
+- `face_embeddings` Data 전체 삭제
+```bash
+curl -X POST "http://127.0.0.1:6333/collections/face_embeddings/points/delete" ^
+     -H "Content-Type: application/json" ^
+     --data "{\"filter\": {}}"
+```

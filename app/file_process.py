@@ -3,8 +3,9 @@ import io
 from minio.error import S3Error
 from config import MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_SECURE
 import cv2
+import numpy as np
+from io import BytesIO
 from datetime import timedelta
-from app.db_process import get_photo_metadata
 
 client = Minio(
     endpoint=MINIO_ENDPOINT,
@@ -25,5 +26,8 @@ def get_presigned_url(bucket, file_name):
     print(url)
     return url
 
-def get_image_list():
-    return get_photo_metadata()
+# Load base images from MinIO
+def load_base_image(file_name):
+    response = client.get_object("base-images", file_name)
+    image_data = BytesIO(response.read())
+    return cv2.imdecode(np.frombuffer(image_data.getbuffer(), np.uint8), cv2.IMREAD_COLOR)
