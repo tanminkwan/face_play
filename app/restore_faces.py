@@ -5,7 +5,7 @@ from codeformer.basicsr.utils import img2tensor, tensor2img
 from codeformer.facelib.utils.face_restoration_helper import FaceRestoreHelper
 from codeformer.basicsr.utils.registry import ARCH_REGISTRY
 
-def restore_face(input_image, use_gpu=False):
+def restore_faces(input_image, use_gpu=False):
     """
     얼굴 복원 함수
     
