@@ -1,5 +1,5 @@
 import uuid
-from config import QDRANT_HOST, QDRANT_PORT
+from config import QDRANT_HOST, QDRANT_PORT, MINIO_PROCESSED_IMAGE_BUCKET
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct
 
@@ -47,6 +47,6 @@ def get_photo_metadata():
             "age": metadata["age"],
             "gender": metadata["gender"],
             "face_index": metadata["face_index"],
-            "bucket_file": f"{metadata['bucket']}/{metadata['file_name']}"
+            "bucket_file": f"{MINIO_PROCESSED_IMAGE_BUCKET}/{metadata['photo_id']}_processed.jpg"
         })
     return metadata_list
