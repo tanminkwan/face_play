@@ -12,8 +12,9 @@ MINIO_SECURE = os.getenv("MINIO_SECURE", "false").lower() == "true"
 MINIO_PROCESSED_IMAGE_BUCKET = os.getenv("MINIO_PROCESSED_IMAGE_BUCKET", "processed-images")
 
 # Qdrant configuration
-QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
-QDRANT_PORT = int(os.getenv("QDRANT_PORT", 6333))
+VECTOR_DB = os.getenv("VECTOR_DB", "QDRANT")
+VECTOR_DB_HOST = os.getenv("VECTOR_DB_HOST", "localhost")
+VECTOR_DB_PORT = int(os.getenv("VECTOR_DB_PORT", 6333))
 
 # InsightFace configuration
 BUFFALO_L_PATH = "C:\\"

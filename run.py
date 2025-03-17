@@ -12,15 +12,21 @@ logger = logging.getLogger(__name__)
 def upload_image(image, photo_title, photo_id):
     logger.info("Uploading image...")
     result = process_image(image, photo_title, photo_id, upload_to_minio)
+    
+    # Check if an error occurred during processing
+    if "error" in result:
+        logger.error(result["error"])
+        return f"<p style='color: red;'>{result['error']}</p>"
+
     logger.info(f"Image processed and saved to bucket: {result['bucket']}, file: {result['file_name']}")
     url = get_presigned_url(result["bucket"], result["file_name"])
     return f"<img src='{url}' style='max-width: 1080px; height: auto;'/>"
 
-def list_images(file_name):
-    logger.info(f"Fetching image list for file_name: {file_name}")
-    images = get_image_list(file_name)
+def list_images(file_name=None, photo_id=None):
+    logger.info(f"Fetching image list for file_name: {file_name}, photo_id: {photo_id}")
+    images = get_image_list(file_name, photo_id)
     logger.info(f"Retrieved {len(images)} images.")
-    return pd.DataFrame(images, columns=["id", "photo_id", "photo_title", "age", "gender", "face_index"])
+    return pd.DataFrame(images, columns=["id", "file_name", "photo_id", "photo_title", "age", "gender", "face_index"])
 
 def on_row_click(evt: gr.SelectData):
     logger.info(f"[on_row_click] Event data:\n{evt}")
@@ -37,7 +43,12 @@ def view_image_details(id):
     logger.info(f"Fetching details for ID: {id}")
     if not id:
         return "<p>No ID selected.</p>"
-    url = get_presigned_url(MINIO_PROCESSED_IMAGE_BUCKET, f"{id}.jpg")
+
+    # If `id` does not end with ".jpg", append ".jpg"
+    if not id.endswith(".jpg"):
+        id += ".jpg"
+
+    url = get_presigned_url(MINIO_PROCESSED_IMAGE_BUCKET, id)
     return f"<img src='{url}' style='max-width: 1080px; height: auto;'/>"
 
 if __name__ == "__main__":
@@ -59,10 +70,11 @@ if __name__ == "__main__":
 
         with gr.Tab("Image List"):
             file_name_input = gr.Textbox(label="File Name", placeholder="Enter file name to filter")
+            photo_id_input = gr.Textbox(label="Photo Id", placeholder="Enter Photo Id to filter")
             refresh_button = gr.Button("Refresh List")
 
             image_list = gr.Dataframe(
-                headers=["ID", "Photo ID", "Photo Title", "Age", "Gender", "Face Index"],
+                headers=["ID", "File Name", "Photo ID", "Photo Title", "Age", "Gender", "Face Index"],
                 value=[],
                 interactive=True
             )
@@ -70,7 +82,7 @@ if __name__ == "__main__":
 
             refresh_button.click(
                 fn=list_images,
-                inputs=file_name_input,
+                inputs=[file_name_input, photo_id_input],
                 outputs=image_list
             )
 

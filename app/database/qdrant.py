@@ -1,23 +1,13 @@
-from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct
-from config import QDRANT_HOST, QDRANT_PORT
-
-# Abstract base class for database operations
-class DatabaseInterface(ABC):
-    @abstractmethod
-    def save_face_data(self, id, photo_title, photo_id, face_index, age, gender, file_name, embedding):
-        pass
-
-    @abstractmethod
-    def get_data(self, id=None, file_name=None, photo_id=None):
-        pass
+from config import VECTOR_DB_HOST, VECTOR_DB_PORT
+from app.database.db_interface import DatabaseInterface
 
 # Qdrant implementation of the database interface
 class QdrantDatabase(DatabaseInterface):
     def __init__(self):
-        self.client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
+        self.client = QdrantClient(host=VECTOR_DB_HOST, port=VECTOR_DB_PORT)
 
     def save_face_data(self, id, photo_title, photo_id, face_index, age, gender, file_name, embedding):
         id = id

@@ -1,6 +1,12 @@
 import insightface
-from config import MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_SECURE, BUFFALO_L_PATH, INSWAPPER_PATH
+from config import VECTOR_DB, BUFFALO_L_PATH, INSWAPPER_PATH
 from app.file_process import load_base_image
+
+if VECTOR_DB == "QDRANT":
+    from app.database.qdrant import QdrantDatabase
+    db = QdrantDatabase()  # Initialize the database interface
+else:
+    raise ValueError("Invalid VECTOR_DB value. Please set VECTOR_DB to 'QDRANT'.")
 
 f_base = load_base_image("f_base.jpg")
 m_base = load_base_image("m_base.jpg")
