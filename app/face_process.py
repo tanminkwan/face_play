@@ -1,10 +1,11 @@
 import uuid
 import cv2
 import numpy as np
-from config import MINIO_PROCESSED_IMAGE_BUCKET
-from app import BASE_IMAGE, BASE_FACE, db, face_detector, face_swapper
+from config import S3_PROCESSED_IMAGE_BUCKET
+from app import BASE_IMAGE, BASE_FACE, db, face_detector, face_swapper, face_restorer
 
-def process_image(image, photo_title, photo_id, upload_to_minio_func):
+def process_image(image, photo_title, photo_id, upload_to_s3_func):
+
     with open(image, "rb") as f:
         file_bytes = np.asarray(bytearray(f.read()), dtype=np.uint8)
         img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
@@ -26,7 +27,7 @@ def process_image(image, photo_title, photo_id, upload_to_minio_func):
         text_color = (235, 45, 45)
         cv2.putText(img, f"IDX : {i}", (bbox[0] + 5, bbox[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, text_color, 2)
         cv2.putText(img, f"Age: {face.age}", (bbox[0] + 5, bbox[1] + 45), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 2)
-        cv2.putText(img, f"Gender: {face.gender}", (bbox[0] + 5, bbox[1] + 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 2)
+        cv2.putText(img, f"Gender: {'M' if face.gender else 'F'}", (bbox[0] + 5, bbox[1] + 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 2)
 
         # Save face data to Qdrant
         id = str(uuid.uuid4())
@@ -46,12 +47,13 @@ def process_image(image, photo_title, photo_id, upload_to_minio_func):
         base_face = BASE_FACE[int(face.gender)]
 
         img_face = face_swapper.get(base_image, base_face, face)
-        upload_to_minio_func(img_face, MINIO_PROCESSED_IMAGE_BUCKET, f"{id}.jpg")
+        img_face = face_restorer.restore(img_face)
+        upload_to_s3_func(img_face, S3_PROCESSED_IMAGE_BUCKET, f"{id}.jpg")
 
     # Save processed image to MinIO
-    upload_to_minio_func(img, MINIO_PROCESSED_IMAGE_BUCKET, file_name)
+    upload_to_s3_func(img, S3_PROCESSED_IMAGE_BUCKET, file_name)
 
-    return {"bucket": MINIO_PROCESSED_IMAGE_BUCKET, "file_name": file_name}
+    return {"bucket": S3_PROCESSED_IMAGE_BUCKET, "file_name": file_name}
 
 def get_image_list(file_name=None, photo_id=None):
     results = db.get_data(file_name=file_name, photo_id=photo_id)

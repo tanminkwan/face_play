@@ -3,11 +3,11 @@
 ### Settings
 - `.env` sample
 ```python
-MINIO_ENDPOINT=www.leebalso.org:9000
-MINIO_ACCESS_KEY=OwnKCLf4NR7905uuv3pI
-MINIO_SECRET_KEY=nGhCbM81UHXuyblbMaizDURhUpZYL5h3lBLPyrQO
-MINIO_SECURE=false
-MINIO_PROCESSED_IMAGE_BUCKET=processed-images
+S3_ENDPOINT=www.leebalso.org:9000
+S3_ACCESS_KEY=OwnKCLf4NR7905uuv3pI
+S3_SECRET_KEY=nGhCbM81UHXuyblbMaizDURhUpZYL5h3lBLPyrQO
+S3_SECURE=false
+S3_PROCESSED_IMAGE_BUCKET=processed-images
 VECTOR_DB=QDRANT
 VECTOR_DB_HOST=192.168.0.4
 VECTOR_DB_PORT=6333
@@ -45,7 +45,7 @@ volumes:
   Bucker name : `processed-images`, `base-images`
   Upload Base images : `f_base.jpg`, `m_base.jpg` 를 `base-images` bucket에 upload
 - Create access key
-  Create and paste them to `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` in `.env`
+  Create and paste them to `S3_ACCESS_KEY`, `S3_SECRET_KEY` in `.env`
 #### 2. Qdrant
 ##### 2-1. for windows
 - Qdrant : https://github.com/qdrant/qdrant/releases
