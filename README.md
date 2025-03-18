@@ -2,10 +2,10 @@
 ---
 ### Installation & Running
 #### 1. MinIO
-##### 1-1. for windows
+##### 1-1. On Windows
 - MinIO : https://min.io/docs/minio/windows/index.html
   Run Command : `.\minio.exe server C:\minio --console-address :9001`
-##### 1-2. Docker container
+##### 1-2. On Docker container
 - MinIO docker compose
 ```yaml
 version: '3.8'
@@ -33,10 +33,10 @@ volumes:
 - Create access key
   Create and paste them to `S3_ACCESS_KEY`, `S3_SECRET_KEY` in `.env`
 #### 2. Qdrant
-##### 2-1. for windows
+##### 2-1. On Windows
 - Qdrant : https://github.com/qdrant/qdrant/releases
   Run Command : `.\qdrant.exe --uri http://127.0.0.1:6333`
-##### 2-2. Docker container
+##### 2-2. On Docker container
 - Qdrant docker compose
 ```yaml
 version: "3.8"
@@ -55,7 +55,7 @@ volumes:
 ```
 ##### 2-3. Init
 - Create Collection
-  For Windows :
+  On Windows :
   ```bash
   curl -X PUT "http://127.0.0.1:6333/collections/face_embeddings" -H "Content-Type: application/json" -d "{\"vectors\":{\"size\":512,\"distance\":\"Cosine\"}}"
   ```
