@@ -29,5 +29,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # (5) 나머지 소스코드 복사
 COPY . .
 
+RUN python download_models.py
+
 # (6) 컨테이너 실행 명령
 CMD ["python", "run.py"]
