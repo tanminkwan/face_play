@@ -1,20 +1,6 @@
 # face_play
 ---
-### Settings
-- `.env` sample
-```python
-S3_ENDPOINT=www.leebalso.org:9000
-S3_ACCESS_KEY=OwnKCLf4NR7905uuv3pI
-S3_SECRET_KEY=nGhCbM81UHXuyblbMaizDURhUpZYL5h3lBLPyrQO
-S3_SECURE=false
-S3_PROCESSED_IMAGE_BUCKET=processed-images
-VECTOR_DB=QDRANT
-VECTOR_DB_HOST=192.168.0.4
-VECTOR_DB_PORT=6333
-BUFFALO_L_PATH=C:\
-```
----
-### Installation
+### Installation & Running
 #### 1. MinIO
 ##### 1-1. for windows
 - MinIO : https://min.io/docs/minio/windows/index.html
@@ -84,3 +70,51 @@ curl -X POST "http://127.0.0.1:6333/collections/face_embeddings/points/delete" ^
      -H "Content-Type: application/json" ^
      --data "{\"filter\": {}}"
 ```
+#### 3. App
+##### 3-1. **Create a Virtual Environment**  
+   Run the following command to create a virtual environment:
+   ```bash
+   python -m venv venv
+   ```
+
+##### 3-2. **Activate the Virtual Environment**  
+   - On Windows:
+     ```bash
+     venv\Scripts\activate
+     ```
+   - On Unix/MacOS:
+     ```bash
+     source venv/bin/activate
+     ```
+
+##### 3-3. **Install Dependencies**  
+   Install the packages listed in `requirements.txt`:
+   ```bash
+   pip install -r requirements.txt
+   ```
+##### 3-4. Settings
+- `.env` sample
+```python
+S3_ENDPOINT=www.leebalso.org:9000
+S3_ACCESS_KEY=OwnKCLf4NR7905uuv3pI
+S3_SECRET_KEY=nGhCbM81UHXuyblbMaizDURhUpZYL5h3lBLPyrQO
+S3_SECURE=false
+S3_PROCESSED_IMAGE_BUCKET=processed-images
+VECTOR_DB=QDRANT
+VECTOR_DB_HOST=192.168.0.4
+VECTOR_DB_PORT=6333
+```
+- `config.py` sample
+```python
+...
+# AI Model configuration
+BUFFALO_L_PATH = "C:\\"
+INSWAPPER_PATH = "C:\\models\\inswapper_128.onnx"
+CODEFORMER_MODEL = "C:/GitHub/v-face_play/CodeFormer/weights/CodeFormer/codeformer.pth"
+```
+
+##### 3-5. **Run the Application**  
+   Start the application by running:
+   ```bash
+   python run.py
+   ```

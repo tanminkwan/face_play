@@ -16,7 +16,7 @@ VECTOR_DB = os.getenv("VECTOR_DB", "QDRANT")
 VECTOR_DB_HOST = os.getenv("VECTOR_DB_HOST", "localhost")
 VECTOR_DB_PORT = int(os.getenv("VECTOR_DB_PORT", 6333))
 
-# InsightFace configuration
+# AI Model configuration
 BUFFALO_L_PATH = "C:\\"
 INSWAPPER_PATH = "C:\\models\\inswapper_128.onnx"
 CODEFORMER_MODEL = "C:/GitHub/v-face_play/CodeFormer/weights/CodeFormer/codeformer.pth"
