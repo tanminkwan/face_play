@@ -100,5 +100,5 @@ if __name__ == "__main__":
                 outputs=details_output
             )
 
-    demo.launch(debug=True)
+    demo.launch(server_name="0.0.0.0", server_port=7860, debug=True)
     logger.info("Gradio app launched successfully.")

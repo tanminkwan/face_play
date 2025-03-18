@@ -9,6 +9,13 @@ def process_image(image, photo_title, photo_id, upload_to_s3_func):
     with open(image, "rb") as f:
         file_bytes = np.asarray(bytearray(f.read()), dtype=np.uint8)
         img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+
+        height, width = img.shape[:2]
+        # 이미지의 너비가 1920px 초과 시 리사이즈 진행
+        if width > 1920:
+            new_width = 1920
+            new_height = int((new_width / width) * height)
+            img = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_AREA)
     
     faces = face_detector.get(img)
     
