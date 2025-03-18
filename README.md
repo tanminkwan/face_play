@@ -63,6 +63,13 @@ volumes:
   ```json
   {"result":true,"status":"ok","time":0.3824695}
   ```
+- Create Index on the collection `face_embeddings`
+  On Windows :
+  ```bash
+  curl -X POST "http://localhost:6333/collections/face_embeddings/index" ^
+  -H "Content-Type: application/json" ^
+  -d "{ \"field_name\": \"photo_id\", \"field_schema\": \"keyword\"}"
+  ```
 ##### 2-3. 주요쿼리
 - `face_embeddings` Data 전체 삭제
 ```bash
