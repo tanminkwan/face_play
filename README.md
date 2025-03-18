@@ -77,6 +77,11 @@ curl -X POST "http://127.0.0.1:6333/collections/face_embeddings/points/delete" ^
      -H "Content-Type: application/json" ^
      --data "{\"filter\": {}}"
 ```
+```bash
+curl -X POST "http://127.0.0.1:6333/collections/face_embeddings/points/delete" \
+     -H "Content-Type: application/json" \
+     --data '{"filter": {}}'
+```
 #### 3. App
 ##### 3-1. **Create a Virtual Environment**  
    Run the following command to create a virtual environment:
