@@ -130,3 +130,12 @@ CODEFORMER_MODEL = "C:/GitHub/v-face_play/CodeFormer/weights/CodeFormer/codeform
    ```bash
    python run.py
    ```
+### 4. Dockerize
+```bash
+Downloading: "https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/detection_Resnet50_Final.pth" to /home/hennry/GitHub/v-face_play/lib/python3.10/site-packages/codeformer/weights/facelib/detection_Resnet50_Final.pth
+
+100%|██████████████████████████████████████████████████████████████████████| 104M/104M [00:03<00:00, 30.8MB/s]
+Downloading: "https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/parsing_parsenet.pth" to /home/hennry/GitHub/v-face_play/lib/python3.10/site-packages/codeformer/weights/facelib/parsing_parsenet.pth
+
+100%|████████████████████████████████████████████████████████████████████| 81.4M/81.4M [00:01<00:00, 60.3MB/s]
+```
