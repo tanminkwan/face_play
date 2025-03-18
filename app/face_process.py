@@ -1,8 +1,9 @@
 import uuid
+import random
 import cv2
 import numpy as np
 from config import S3_PROCESSED_IMAGE_BUCKET
-from app import BASE_IMAGE, BASE_FACE, db, face_detector, face_swapper, face_restorer
+from app import F_BASE, M_BASE, db, face_detector, face_swapper, face_restorer
 
 def process_image(image, photo_title, photo_id, upload_to_s3_func):
 
@@ -50,8 +51,12 @@ def process_image(image, photo_title, photo_id, upload_to_s3_func):
         )
 
         # Save face image to MinIO
-        base_image = BASE_IMAGE[int(face.gender)]
-        base_face = BASE_FACE[int(face.gender)]
+        if face.gender: # Mail (1)
+            base = random.choice(M_BASE)
+        else: # Female(0)
+            base = random.choice(F_BASE)
+
+        base_image, base_face = base
 
         img_face = face_swapper.get(base_image, base_face, face)
         img_face = face_restorer.restore(img_face)

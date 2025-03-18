@@ -54,12 +54,21 @@ def view_image_details(id):
 if __name__ == "__main__":
     logger.info("Starting Gradio app...")
 
-    with gr.Blocks() as demo:
+    with gr.Blocks(
+            css="""
+                /* out_html 영역에만 적용할 CSS */
+                #out_html {
+                    max-height: none !important;
+                    overflow: visible !important;
+                }
+                """
+    ) as demo:
+
         with gr.Tab("Upload Image"):
             image_input = gr.Image(type="filepath", label="Upload Image")
             photo_title = gr.Textbox(label="Photo Title")
             photo_id = gr.Textbox(label="Photo ID")
-            output_html = gr.HTML(label="Processed Image")
+            output_html = gr.HTML(label="Processed Image", elem_id="out_html")
 
             upload_button = gr.Button("Upload")
             upload_button.click(
@@ -100,5 +109,6 @@ if __name__ == "__main__":
                 outputs=details_output
             )
 
+    demo.queue()
     demo.launch(server_name="0.0.0.0", server_port=7860, debug=True)
     logger.info("Gradio app launched successfully.")

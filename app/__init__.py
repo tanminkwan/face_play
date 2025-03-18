@@ -1,7 +1,7 @@
 import insightface
 from config import VECTOR_DB, BUFFALO_L_PATH, INSWAPPER_PATH, CODEFORMER_MODEL
 from app.ai_process.restore_faces import FaceRestorer
-from app.file_process import load_base_image
+from app.file_process import load_base_images, list_files_in_bucket
 
 if VECTOR_DB == "QDRANT":
     from app.database.qdrant import QdrantDatabase
@@ -17,8 +17,6 @@ face_swapper = insightface.model_zoo.get_model(INSWAPPER_PATH)
 
 face_restorer = FaceRestorer(model_path=CODEFORMER_MODEL)
 
-f_base = load_base_image("f_base.jpg")
-m_base = load_base_image("m_base.jpg")
-
-BASE_IMAGE = [f_base, m_base]
-BASE_FACE = [face_detector.get(f_base)[0],  face_detector.get(m_base)[0]]
+f_base_images, m_base_images = load_base_images()
+F_BASE = [(f, face_detector.get(f)[0]) for f in f_base_images]
+M_BASE = [(m, face_detector.get(m)[0]) for m in m_base_images]
