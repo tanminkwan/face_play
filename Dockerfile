@@ -1,16 +1,21 @@
 FROM python:3.12-slim
 
 # (1) 필수 OS 패키지 설치
-RUN apt-get update && apt-get install -y build-essential libgl1-mesa-glx
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libgl1-mesa-glx \
+    libglib2.0-0
 
-WORKDIR /app
+WORKDIR /face-play
 
 # (2) requirements.txt 복사 & 라이브러리 설치
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # (5) 나머지 소스코드 복사
-COPY app/ .
+COPY app /face-play/app
+COPY ai_process /face-play/ai_process
+COPY database /face-play/database
 COPY config.py .
 COPY download_models.py .
 COPY run.py .
