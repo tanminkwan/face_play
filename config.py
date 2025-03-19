@@ -18,19 +18,9 @@ VECTOR_DB_HOST = os.getenv("VECTOR_DB_HOST", "localhost")
 VECTOR_DB_PORT = int(os.getenv("VECTOR_DB_PORT", 6333))
 
 RESERVED_FACES = [
-    {
-        "type":"mean_face" ,
-        "gender":0 ,
-        "db_id":"0000-0000",
-        "file_name":"female_mean_face.jpg" ,
-    } ,
-    { 
-        "type":"mean_face" ,
-        "gender":1 ,
-        "db_id":"1111-1111",
-        "file_name":"male_mean_face.jpg" ,
-    } ,
-]
+    "00000000-0000-0000-0000-000000000000",
+    "11111111-1111-1111-1111-111111111111"
+    ]
 
 # AI Option
 IS_FACE_RESTORATION_ENABLED = os.getenv("ENABLE_FACE_RESTORATION", "false").lower() == "true"
@@ -38,4 +28,4 @@ IS_FACE_RESTORATION_ENABLED = os.getenv("ENABLE_FACE_RESTORATION", "false").lowe
 # AI Model configuration
 BUFFALO_L_PATH = "C:\\"
 INSWAPPER_PATH = "C:\\models\\inswapper_128.onnx"
-CODEFORMER_MODEL = "C:/GitHub/v-face_play/CodeFormer/weights/CodeFormer/codeformer.pth"
+CODEFORMER_MODEL = "C:\\models\\codeformer-v0.1.0.pth"

@@ -47,7 +47,7 @@ class QdrantDatabase(DatabaseInterface):
             ]
         )
 
-    def save_special_face_data(self, id, age, num_people, last_processed_at, embedding):
+    def save_special_face_data(self, id, age, gender, num_people, last_processed_at, embedding):
         metadata = {
             "age": age,
             "num_people": num_people,
@@ -65,10 +65,8 @@ class QdrantDatabase(DatabaseInterface):
             ]
         )
 
-    def get_data(self, id=None, file_name=None, photo_id=None, with_vectors=False):
+    def get_data(self, file_name=None, photo_id=None, with_vectors=False):
         filters = []
-        if id:
-            filters.append({"key": "id", "match": {"value": id}})
         if file_name:
             filters.append({"key": "file_name", "match": {"value": file_name}})
         if photo_id:
@@ -84,7 +82,29 @@ class QdrantDatabase(DatabaseInterface):
         )
 
         data_list = [get_result(point) for point in results[0]]
+
         return data_list
+
+    def get_data_by_id(self, id, with_vectors=False):
+        
+        result = self.client.retrieve(
+            collection_name="face_embeddings",
+            ids=[id],
+            with_vectors=with_vectors
+        )
+
+        if not result:
+            return None
+        record = result[0]
+        return {
+                "id": record.id,
+                "age": record.payload.get("age", None),
+                "gender": record.payload.get("gender", None),
+                "num_people": record.payload.get("num_people", None),
+                "last_processed_at": record.payload.get("last_processed_at", None),
+                "updated_at": record.payload.get("updated_at", None),
+                "embedding": record.vector,
+            }
 
     def get_data_after_date_sorted(self, date_ts: float, with_vectors=False):
     

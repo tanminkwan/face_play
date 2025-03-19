@@ -11,7 +11,11 @@ class DatabaseInterface(ABC):
         pass
 
     @abstractmethod
-    def get_data(self, id=None, file_name=None, photo_id=None):
+    def get_data(self, file_name=None, photo_id=None, with_vectors=False):
+        pass
+
+    @abstractmethod
+    def get_data_by_id(self, id, with_vectors=False):
         pass
 
     @abstractmethod

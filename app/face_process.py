@@ -44,7 +44,7 @@ def process_image(image, photo_title, photo_id, upload_image_func):
             photo_title=photo_title,
             photo_id=photo_id,
             face_index=i,
-            age=int(face.age),
+            age=float(face.age),
             gender=int(face.gender),
             file_name=file_name,
             embedding=face.embedding.tolist()

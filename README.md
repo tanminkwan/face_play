@@ -75,6 +75,12 @@ volumes:
 ```bash
 curl -X POST "http://localhost:6333/collections/face_embeddings/points/scroll" -H "Content-Type: application/json" -d "{\"limit\": 100, \"with_payload\": true}"
 ```
+```bash
+curl -X POST ^
+  "http://192.168.0.4:6333/collections/face_embeddings/points" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"ids\":[\"00000000-0000-0000-0000-000000000000\",\"11111111-1111-1111-1111-111111111111\"], \"with_vectors\": true}"
+```
 - `face_embeddings` Data 전체 삭제
 ```bash
 curl -X POST "http://127.0.0.1:6333/collections/face_embeddings/points/delete" ^
