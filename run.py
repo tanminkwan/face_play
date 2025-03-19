@@ -2,16 +2,16 @@ import os
 import logging
 import gradio as gr
 import pandas as pd
+from config import S3_IMAGE_BUCKET
+from app import storage
 from app.face_process import process_image, get_image_list
-from app.file_process import get_presigned_url, upload_to_s3
-from config import S3_PROCESSED_IMAGE_BUCKET
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def upload_image(image, photo_title, photo_id):
     logger.info("Uploading image...")
-    result = process_image(image, photo_title, photo_id, upload_to_s3)
+    result = process_image(image, photo_title, photo_id, storage.upload_image)
     
     # Check if an error occurred during processing
     if "error" in result:
@@ -19,7 +19,7 @@ def upload_image(image, photo_title, photo_id):
         return f"<p style='color: red;'>{result['error']}</p>"
 
     logger.info(f"Image processed and saved to bucket: {result['bucket']}, file: {result['file_name']}")
-    url = get_presigned_url(result["bucket"], result["file_name"])
+    url = storage.get_file_url(result["bucket"], result["file_name"])
     return f"<img src='{url}' style='max-width: 1080px; height: auto;'/>"
 
 def list_images(file_name=None, photo_id=None):
@@ -48,7 +48,7 @@ def view_image_details(id):
     if not id.endswith(".jpg"):
         id += ".jpg"
 
-    url = get_presigned_url(S3_PROCESSED_IMAGE_BUCKET, id)
+    url = storage.get_file_url(S3_IMAGE_BUCKET, id)
     return f"<img src='{url}' style='max-width: 1080px; height: auto;'/>"
 
 if __name__ == "__main__":

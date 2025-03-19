@@ -2,10 +2,10 @@ import uuid
 import random
 import cv2
 import numpy as np
-from config import S3_PROCESSED_IMAGE_BUCKET
+from config import S3_IMAGE_BUCKET, IS_FACE_RESTORATION_ENABLED
 from app import F_BASE, M_BASE, db, face_detector, face_swapper, face_restorer
 
-def process_image(image, photo_title, photo_id, upload_to_s3_func):
+def process_image(image, photo_title, photo_id, upload_image_func):
 
     with open(image, "rb") as f:
         file_bytes = np.asarray(bytearray(f.read()), dtype=np.uint8)
@@ -50,22 +50,20 @@ def process_image(image, photo_title, photo_id, upload_to_s3_func):
             embedding=face.embedding.tolist()
         )
 
-        # Save face image to MinIO
-        if face.gender: # Mail (1)
-            base = random.choice(M_BASE)
-        else: # Female(0)
-            base = random.choice(F_BASE)
-
-        base_image, base_face = base
+        # Save face image to MinIO : Mail (1), Female(0)
+        base_image, base_face = random.choice(M_BASE if face.gender else F_BASE)
 
         img_face = face_swapper.get(base_image, base_face, face)
-        img_face = face_restorer.restore(img_face)
-        upload_to_s3_func(img_face, S3_PROCESSED_IMAGE_BUCKET, f"{id}.jpg")
+
+        if IS_FACE_RESTORATION_ENABLED:
+            img_face = face_restorer.restore(img_face)
+
+        upload_image_func(img_face, S3_IMAGE_BUCKET, f"{id}.jpg")
 
     # Save processed image to MinIO
-    upload_to_s3_func(img, S3_PROCESSED_IMAGE_BUCKET, file_name)
+    upload_image_func(img, S3_IMAGE_BUCKET, file_name)
 
-    return {"bucket": S3_PROCESSED_IMAGE_BUCKET, "file_name": file_name}
+    return {"bucket": S3_IMAGE_BUCKET, "file_name": file_name}
 
 def get_image_list(file_name=None, photo_id=None):
     results = db.get_data(file_name=file_name, photo_id=photo_id)

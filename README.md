@@ -71,6 +71,10 @@ volumes:
   -d "{ \"field_name\": \"photo_id\", \"field_schema\": \"keyword\"}"
   ```
 ##### 2-3. 주요쿼리
+- `` Data 조회
+```bash
+curl -X POST "http://localhost:6333/collections/face_embeddings/points/scroll" -H "Content-Type: application/json" -d "{\"limit\": 100, \"with_payload\": true}"
+```
 - `face_embeddings` Data 전체 삭제
 ```bash
 curl -X POST "http://127.0.0.1:6333/collections/face_embeddings/points/delete" ^
@@ -111,7 +115,7 @@ S3_ENDPOINT=www.leebalso.org:9000
 S3_ACCESS_KEY=OwnKCLf4NR7905uuv3pI
 S3_SECRET_KEY=nGhCbM81UHXuyblbMaizDURhUpZYL5h3lBLPyrQO
 S3_SECURE=false
-S3_PROCESSED_IMAGE_BUCKET=processed-images
+S3_IMAGE_BUCKET=processed-images
 VECTOR_DB=QDRANT
 VECTOR_DB_HOST=192.168.0.4
 VECTOR_DB_PORT=6333

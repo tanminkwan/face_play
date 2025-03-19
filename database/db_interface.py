@@ -7,7 +7,14 @@ class DatabaseInterface(ABC):
         pass
 
     @abstractmethod
+    def save_special_face_data(self, id, age, num_people, last_processed_at, embedding):
+        pass
+
+    @abstractmethod
     def get_data(self, id=None, file_name=None, photo_id=None):
         pass
 
+    @abstractmethod
+    def get_data_after_date_sorted(self, date_str: str):
+        pass
 

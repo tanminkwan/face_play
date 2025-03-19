@@ -21,7 +21,3 @@ if OBJECT_STORAGE == "MINIO":
     storage = MinIO()  # Initialize the database interface
 else:
     raise ValueError("Invalid Storage value.")
-
-f_base_images, m_base_images = storage.load_base_images_list()
-F_BASE = [(f, face_detector.get(f)[0]) for f in f_base_images]
-M_BASE = [(m, face_detector.get(m)[0]) for m in m_base_images]
