@@ -7,9 +7,11 @@ import numpy as np
 from io import BytesIO
 from datetime import timedelta
 from storage.storage_interface import StorageInterface
+from library.gadget import to_np_image, to_image_bytes
 
 # Qdrant implementation of the database interface
 class MinIO(StorageInterface):
+
     def __init__(self):
         self.client = Minio(
             endpoint=S3_ENDPOINT,
@@ -19,11 +21,20 @@ class MinIO(StorageInterface):
         )
 
     # upload_to_s3
-    def upload_image(self, image, bucket, file_name):
-        _, buffer = cv2.imencode('.jpg', image)
-        image_bytes = io.BytesIO(buffer)
-        self.client.put_object(bucket, file_name, image_bytes, \
-                        length=image_bytes.getbuffer().nbytes, content_type='image/jpeg')
+    @to_image_bytes
+    def upload_image(self, bucket, file_name, image_bytes, length):
+        """
+        The real 'upload_image' logic expects the image as bytes, plus the length.
+        Thanks to the decorator, you can simply call upload_image(..., image=your_np_array)
+        and get these two parameters auto-injected.
+        """
+        self.client.put_object(
+            bucket,
+            file_name,
+            image_bytes,
+            length=length,
+            content_type='image/jpeg'
+        )
 
     # get_presigned_url
     def get_file_url(self, bucket, file_name):
@@ -33,10 +44,9 @@ class MinIO(StorageInterface):
         return url
 
     # Load base images from MinIO(or S3)
+    @to_np_image
     def load_image(self, bucket, file_name):
-        response = self.client.get_object(bucket, file_name)
-        image_data = BytesIO(response.read())
-        return cv2.imdecode(np.frombuffer(image_data.getbuffer(), np.uint8), cv2.IMREAD_COLOR)
+        return self.client.get_object(bucket, file_name)
 
     def list_files_in_bucket(self, bucket, recursive=True):
         # bucket 내 파일 목록 조회 (recursive=True 로 모든 객체 검색)

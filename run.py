@@ -4,14 +4,16 @@ import gradio as gr
 import pandas as pd
 from config import S3_IMAGE_BUCKET
 from app import storage
-from app.face_process import process_image, get_image_list
+from app.face_process import process_image, get_image_list, get_average_faces
+from ui.html import average_faces_html
+from ui.css import css
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def upload_image(image, photo_title, photo_id):
     logger.info("Uploading image...")
-    result = process_image(image, photo_title, photo_id, storage.upload_image)
+    result = process_image(image, photo_title, photo_id)
     
     # Check if an error occurred during processing
     if "error" in result:
@@ -51,18 +53,25 @@ def view_image_details(id):
     url = storage.get_file_url(S3_IMAGE_BUCKET, id)
     return f"<img src='{url}' style='max-width: 1080px; height: auto;'/>"
 
+def view_average_faces():
+    """
+    Calls get_average_faces() and returns an HTML string with:
+      - Female/male participant count
+      - Female/male average ages
+      - Image loaded from the returned bucket & file_name
+    """
+    data = get_average_faces()  # => { bucket, file_name, f_age, m_age, f_num_people, m_num_people }
+
+    # Fetch image URL using the returned bucket & file_name
+    url = storage.get_file_url(data["bucket"], data["file_name"])
+
+    # Create an HTML block with the stats and the image    
+    return average_faces_html(data, url)
+
 if __name__ == "__main__":
     logger.info("Starting Gradio app...")
 
-    with gr.Blocks(
-            css="""
-                /* out_html 영역에만 적용할 CSS */
-                #out_html {
-                    max-height: none !important;
-                    overflow: visible !important;
-                }
-                """
-    ) as demo:
+    with gr.Blocks(css=css) as demo:
 
         with gr.Tab("Upload Image"):
             image_input = gr.Image(type="filepath", label="Upload Image")
@@ -107,6 +116,18 @@ if __name__ == "__main__":
                 fn=view_image_details,  # Function to fetch and display image
                 inputs=selected_id,  # Pass the hidden Textbox value as input
                 outputs=details_output
+            )
+        # --- Tab 3: Average Faces ---
+        with gr.Tab("Average Faces"):
+            gr.Markdown("Click below to see aggregate info about the faces and the merged (average) face image.")
+
+            average_button = gr.Button("Show Average Faces")
+            average_output = gr.HTML(label="Average Faces Details", elem_id="out_html")
+
+            average_button.click(
+                fn=view_average_faces,
+                inputs=None,
+                outputs=average_output
             )
 
     demo.queue()

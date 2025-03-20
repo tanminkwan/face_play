@@ -5,7 +5,7 @@ import numpy as np
 class StorageInterface(ABC):
 
     @abstractmethod
-    def upload_image(self, image: np.ndarray, bucket: str, file_name: str) -> None:
+    def upload_image(self, bucket: str, file_name: str, image: np.ndarray) -> None:
         """
         이미지 데이터를 S3에 업로드합니다.
         """

@@ -11,6 +11,10 @@ class DatabaseInterface(ABC):
         pass
 
     @abstractmethod
+    def save_face_data_batch(self, face_data_list):
+        pass
+
+    @abstractmethod
     def get_data(self, file_name=None, photo_id=None, with_vectors=False):
         pass
 
@@ -21,4 +25,3 @@ class DatabaseInterface(ABC):
     @abstractmethod
     def get_data_after_date_sorted(self, date_str: str):
         pass
-

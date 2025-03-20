@@ -47,6 +47,50 @@ class QdrantDatabase(DatabaseInterface):
             ]
         )
 
+    def save_face_data_batch(self, face_data_list):
+        """
+        Save multiple face data records into Qdrant in one batch.
+
+        :param face_data_list: A list of dicts, each containing the fields:
+            {
+              "id": unique_id_for_the_face,
+              "photo_title": ...,
+              "photo_id": ...,
+              "face_index": ...,
+              "age": ...,
+              "gender": ...,
+              "file_name": ...,
+              "embedding": np.ndarray or list[float]
+            }
+        """
+        points = []
+        current_time = datetime.now(timezone.utc).timestamp()
+
+        for data in face_data_list:
+            metadata = {
+                "photo_title": data.get("photo_title"),
+                "photo_id": data.get("photo_id"),
+                "face_index": data.get("face_index"),
+                "age": data.get("age"),
+                "gender": data.get("gender"),
+                "file_name": data.get("file_name"),
+                "created_at": current_time  # or you can do per-item time
+            }
+
+            points.append(
+                PointStruct(
+                    id=data["id"],
+                    vector=data["embedding"],
+                    payload=metadata
+                )
+            )
+
+        if points:
+            self.client.upsert(
+                collection_name="face_embeddings",
+                points=points
+            )
+            
     def save_special_face_data(self, id, age, gender, num_people, last_processed_at, embedding):
         metadata = {
             "age": age,

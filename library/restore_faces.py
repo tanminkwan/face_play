@@ -4,7 +4,9 @@ from torchvision.transforms.functional import normalize
 from codeformer.basicsr.utils import img2tensor, tensor2img
 from codeformer.facelib.utils.face_restoration_helper import FaceRestoreHelper
 from codeformer.basicsr.utils.registry import ARCH_REGISTRY
+from library.gadget import singleton
 
+@singleton
 class FaceRestorer:
     """
     얼굴 복원을 위한 클래스

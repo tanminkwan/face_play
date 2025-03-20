@@ -2,21 +2,13 @@ import uuid
 import random
 import cv2
 import numpy as np
-from config import S3_IMAGE_BUCKET, IS_FACE_RESTORATION_ENABLED
-from app import F_BASE, M_BASE, db, face_detector, face_swapper, face_restorer
+from config import S3_IMAGE_BUCKET, RESERVED_FACES, IS_FACE_RESTORATION_ENABLED
+from app import F_BASE, M_BASE, db, storage, face_detector, face_swapper, face_restorer
+from library.gadget import load_and_resize_image
 
-def process_image(image, photo_title, photo_id, upload_image_func):
+def process_image(image, photo_title, photo_id):
 
-    with open(image, "rb") as f:
-        file_bytes = np.asarray(bytearray(f.read()), dtype=np.uint8)
-        img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-
-        height, width = img.shape[:2]
-        # 이미지의 너비가 1920px 초과 시 리사이즈 진행
-        if width > 1920:
-            new_width = 1920
-            new_height = int((new_width / width) * height)
-            img = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_AREA)
+    img = load_and_resize_image(image, max_width=1024, max_height=1024)
     
     faces = face_detector.get(img)
     
@@ -27,6 +19,7 @@ def process_image(image, photo_title, photo_id, upload_image_func):
     faces = sorted(faces, key=lambda face: face.bbox[0])
     file_name = f"{str(uuid.uuid4())}.jpg"
 
+    face_data_list = []
     for i, face in enumerate(faces):
         # 얼굴 영역 표시
         bbox = face.bbox.astype(int)
@@ -37,19 +30,6 @@ def process_image(image, photo_title, photo_id, upload_image_func):
         cv2.putText(img, f"Age: {face.age}", (bbox[0] + 5, bbox[1] + 45), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 2)
         cv2.putText(img, f"Gender: {'M' if face.gender else 'F'}", (bbox[0] + 5, bbox[1] + 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 2)
 
-        # Save face data to Qdrant
-        id = str(uuid.uuid4())
-        db.save_face_data(
-            id=id,
-            photo_title=photo_title,
-            photo_id=photo_id,
-            face_index=i,
-            age=float(face.age),
-            gender=int(face.gender),
-            file_name=file_name,
-            embedding=face.embedding.tolist()
-        )
-
         # Save face image to MinIO : Mail (1), Female(0)
         base_image, base_face = random.choice(M_BASE if face.gender else F_BASE)
 
@@ -58,10 +38,25 @@ def process_image(image, photo_title, photo_id, upload_image_func):
         if IS_FACE_RESTORATION_ENABLED:
             img_face = face_restorer.restore(img_face)
 
-        upload_image_func(img_face, S3_IMAGE_BUCKET, f"{id}.jpg")
+        id = str(uuid.uuid4())
+
+        storage.upload_image(S3_IMAGE_BUCKET, f"{id}.jpg", image=img_face)
+
+        face_data_list.append(dict(
+            id=id,
+            photo_title=photo_title,
+            photo_id=photo_id,
+            face_index=i,
+            age=float(face.age),
+            gender=int(face.gender),
+            file_name=file_name,
+            embedding=face.embedding.tolist()
+        ))
 
     # Save processed image to MinIO
-    upload_image_func(img, S3_IMAGE_BUCKET, file_name)
+    storage.upload_image(S3_IMAGE_BUCKET, file_name, image=img)
+    # Save face data to Qdrant
+    db.save_face_data_batch(face_data_list)
 
     return {"bucket": S3_IMAGE_BUCKET, "file_name": file_name}
 
@@ -80,3 +75,25 @@ def get_image_list(file_name=None, photo_id=None):
         for item in results
     ]
     return images
+
+def get_average_faces():
+
+    m_v = db.get_data_by_id(id=RESERVED_FACES[1])
+    f_v = db.get_data_by_id(id=RESERVED_FACES[0])
+
+    f_age = f_v["age"] if f_v else 0.0
+    m_age = m_v["age"] if m_v else 0.0
+
+    f_num_people = f_v["num_people"] if f_v else 0.0
+    m_num_people = m_v["num_people"] if m_v else 0.0
+
+    average_faces_info = {
+        "bucket": S3_IMAGE_BUCKET, 
+        "file_name": "mean_face.jpg", 
+        "f_age":f_age, 
+        "m_age":m_age, 
+        "f_num_people":f_num_people,
+        "m_num_people":m_num_people
+    }
+
+    return average_faces_info

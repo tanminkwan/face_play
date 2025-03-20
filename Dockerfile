@@ -14,8 +14,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # (5) 나머지 소스코드 복사
 COPY app /face-play/app
-COPY ai_process /face-play/ai_process
+COPY science /face-play/science
+COPY storage /face-play/storage
 COPY database /face-play/database
+COPY scheduler /face-play/scheduler
 COPY config.py .
 COPY download_models.py .
 COPY run.py .
