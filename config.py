@@ -26,6 +26,9 @@ RESERVED_FACES = [
 IS_FACE_RESTORATION_ENABLED = os.getenv("ENABLE_FACE_RESTORATION", "false").lower() == "true"
 
 # AI Model configuration
-BUFFALO_L_PATH = "C:\\"
-INSWAPPER_PATH = "C:\\models\\inswapper_128.onnx"
-CODEFORMER_MODEL = "C:\\models\\codeformer-v0.1.0.pth"
+#BUFFALO_L_PATH = "C:\\"
+#INSWAPPER_PATH = "C:\\models\\inswapper_128.onnx"
+#CODEFORMER_MODEL = "C:\\models\\codeformer-v0.1.0.pth"
+BUFFALO_L_PATH = "/"
+INSWAPPER_PATH = "/models/inswapper_128.onnx"
+CODEFORMER_MODEL = "/models/codeformer.pth"
