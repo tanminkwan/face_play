@@ -15,7 +15,7 @@ services:
       VECTOR_DB: QDRANT
       VECTOR_DB_HOST: 172.17.0.1
       VECTOR_DB_PORT: "6333"
-    command: ["python", "run.py"]
+    command: ["python", "run_app.py"]
   face-play-scheduler:
     image: tanminkwan/face-play
     container_name: face-play-scheduler

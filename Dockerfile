@@ -21,7 +21,8 @@ COPY ui /face-play/ui
 COPY scheduler /face-play/scheduler
 COPY config.py .
 COPY download_models.py .
-COPY run.py .
+COPY run_app.py .
+COPY run_scheduler.py .
 
 COPY inswapper_128.onnx /models/inswapper_128.onnx
 COPY codeformer.pth /models/codeformer.pth
