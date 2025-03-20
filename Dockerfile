@@ -17,6 +17,7 @@ COPY app /face-play/app
 COPY library /face-play/library
 COPY storage /face-play/storage
 COPY database /face-play/database
+COPY ui /face-play/ui
 COPY scheduler /face-play/scheduler
 COPY config.py .
 COPY download_models.py .
