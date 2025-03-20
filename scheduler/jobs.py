@@ -6,7 +6,9 @@ from library.gadget import to_ndarray, create_face_from_vector
 
 def update_mean_faces():
 
-    mean_face_img = storage.load_image("base-images", "mean_face.jpg")
+    file_name = "mean_face.jpg"
+
+    mean_face_img = storage.load_image("base-images", file_name)
 
     f_v = db.get_data_by_id(id=RESERVED_FACES[0], with_vectors=True)
     m_v = db.get_data_by_id(id=RESERVED_FACES[1], with_vectors=True)
@@ -44,7 +46,6 @@ def update_mean_faces():
         return {"error": "No faces detected in the image. Please upload a valid image with faces."}
 
     faces = sorted(faces, key=lambda face: face.bbox[0])
-    file_name = "mean_face.jpg"
     
     f_num_people = len(female_vectors)
     
@@ -123,4 +124,10 @@ def update_mean_faces():
 
     img_face = face_restorer.restore(mean_face_img)
 
-    storage.upload_image(S3_IMAGE_BUCKET, file_name, image=img_face)
+    # 현재 UTC 타임스탬프 문자열 생성
+    timestamp = last_processed_at.strftime('%Y%m%d%H%M%S')
+
+    # 새 파일명 생성
+    new_filename = f"mean_face.{timestamp}.jpg"
+
+    storage.upload_image(S3_IMAGE_BUCKET, new_filename, image=img_face)

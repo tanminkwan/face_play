@@ -87,9 +87,19 @@ def get_average_faces():
     f_num_people = f_v["num_people"] if f_v else 0.0
     m_num_people = m_v["num_people"] if m_v else 0.0
 
+    f_l = f_v["last_processed_at"] if f_v else 0.0
+    m_l = m_v["last_processed_at"] if m_v else 0.0
+    last_processed_at = max(f_l, m_l)
+
+    # 현재 UTC 타임스탬프 문자열 생성
+    timestamp = last_processed_at.strftime('%Y%m%d%H%M%S')
+
+    # 새 파일명 생성
+    file_name = f"mean_face.{timestamp}.jpg"
+
     average_faces_info = {
         "bucket": S3_IMAGE_BUCKET, 
-        "file_name": "mean_face.jpg", 
+        "file_name": file_name, 
         "f_age":f_age, 
         "m_age":m_age, 
         "f_num_people":f_num_people,
