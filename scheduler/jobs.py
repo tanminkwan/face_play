@@ -8,8 +8,8 @@ def update_mean_faces():
 
     mean_face_img = storage.load_image("base-images", "mean_face.jpg")
 
-    m_v = db.get_data_by_id(id=RESERVED_FACES[1], with_vectors=True)
     f_v = db.get_data_by_id(id=RESERVED_FACES[0], with_vectors=True)
+    m_v = db.get_data_by_id(id=RESERVED_FACES[1], with_vectors=True)
     
     f_l = f_v["last_processed_at"] if f_v else 0.0
     m_l = m_v["last_processed_at"] if m_v else 0.0
@@ -73,7 +73,7 @@ def update_mean_faces():
         db.save_special_face_data(
             id = RESERVED_FACES[0], 
             age = f_age_mean,
-            gender = 1,
+            gender = 0,
             num_people = (f_v["num_people"] if f_v else 0) + f_num_people,
             last_processed_at = last_processed_at, 
             embedding = f_vector_mean.tolist()
