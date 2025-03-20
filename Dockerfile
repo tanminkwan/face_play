@@ -27,4 +27,4 @@ COPY codeformer.pth /models/codeformer.pth
 RUN python download_models.py
 
 # (6) 컨테이너 실행 명령
-CMD ["python", "run.py"]
+# CMD ["python", "run.py"]
