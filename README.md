@@ -33,6 +33,10 @@ volumes:
 - Create access key
   Create and paste them to `S3_ACCESS_KEY`, `S3_SECRET_KEY` in `.env`
 #### 2. Qdrant
+- 선정이유
+  - http 만 사용해서 별도의 통신 driver 필요없음. 특히 neo4j apoc 용 driver 필요없음
+  - 유사도기준 query 가능
+  - scaling 가능
 ##### 2-1. On Windows
 - Qdrant : https://github.com/qdrant/qdrant/releases
   Run Command : `.\qdrant.exe --uri http://127.0.0.1:6333`
@@ -66,11 +70,16 @@ volumes:
 - Create Index on the collection `face_embeddings`
   On Windows :
   ```bash
-  curl -X POST "http://localhost:6333/collections/face_embeddings/index" ^
+  curl -v -X PUT "http://localhost:6333/collections/face_embeddings/index" ^
   -H "Content-Type: application/json" ^
   -d "{ \"field_name\": \"photo_id\", \"field_schema\": \"keyword\"}"
   ```
-##### 2-3. 주요쿼리
+  ```bash
+  curl -v -X PUT "http://localhost:6333/collections/face_embeddings/index" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"field_name\": \"created_at\", \"field_schema\": \"float\"}"
+  ```
+##### 2-4. 주요쿼리
 - `` Data 조회
 ```bash
 curl -X POST "http://localhost:6333/collections/face_embeddings/points/scroll" -H "Content-Type: application/json" -d "{\"limit\": 100, \"with_payload\": true}"
@@ -92,14 +101,26 @@ curl -X POST "http://127.0.0.1:6333/collections/face_embeddings/points/delete" \
      -H "Content-Type: application/json" \
      --data '{"filter": {}}'
 ```
-#### 3. App
-##### 3-1. **Create a Virtual Environment**  
+#### 3. Neo4j
+##### 3-1. On Windows
+- Download
+  url : https://neo4j.com/deployment-center/
+  Menu : Graph Database Self-Managed >  Community
+  Windows Excutable 선택 후 download
+- Installation
+  url : https://neo4j.com/docs/operations-manual/current/installation/windows/
+##### 3-2. On Docker container
+- Qdrant : https://github.com/qdrant/qdrant/releases
+  Run Command : `.\qdrant.exe --uri http://127.0.0.1:6333`
+
+#### 4. App
+##### 4-1. **Create a Virtual Environment**  
    Run the following command to create a virtual environment:
    ```bash
    python -m venv venv
    ```
 
-##### 3-2. **Activate the Virtual Environment**  
+##### 4-2. **Activate the Virtual Environment**  
    - On Windows:
      ```bash
      venv\Scripts\activate
@@ -109,12 +130,12 @@ curl -X POST "http://127.0.0.1:6333/collections/face_embeddings/points/delete" \
      source venv/bin/activate
      ```
 
-##### 3-3. **Install Dependencies**  
+##### 4-3. **Install Dependencies**  
    Install the packages listed in `requirements.txt`:
    ```bash
    pip install -r requirements.txt
    ```
-##### 3-4. Settings
+##### 4-4. Settings
 - `.env` sample
 ```python
 S3_ENDPOINT=www.leebalso.org:9000
@@ -135,10 +156,10 @@ INSWAPPER_PATH = "C:\\models\\inswapper_128.onnx"
 CODEFORMER_MODEL = "C:/GitHub/v-face_play/CodeFormer/weights/CodeFormer/codeformer.pth"
 ```
 
-##### 3-5. **Run the Application**  
+##### 4-5. **Run the Application**  
    Start the application by running:
    ```bash
-   python run.py
+   uvicorn run_app:app --host 0.0.0.0 --port 7860
    ```
 ### 4. Dockerize
 ```bash

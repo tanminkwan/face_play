@@ -12,12 +12,18 @@ from library.gadget import to_np_image, to_image_bytes
 # Qdrant implementation of the database interface
 class MinIO(StorageInterface):
 
-    def __init__(self):
+    def __init__(
+            self,
+            endpoint=None,
+            access_key=None,
+            secret_key=None,
+            secure=False
+        ):
         self.client = Minio(
-            endpoint=S3_ENDPOINT,
-            access_key=S3_ACCESS_KEY,
-            secret_key=S3_SECRET_KEY,
-            secure=S3_SECURE
+            endpoint=endpoint,
+            access_key=access_key,
+            secret_key=secret_key,
+            secure=secure
         )
 
     # upload_to_s3

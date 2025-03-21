@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct, Filter, FieldCondition, Range
-from config import VECTOR_DB_HOST, VECTOR_DB_PORT
 from database.db_interface import DatabaseInterface
 
 def get_result(point):
@@ -19,12 +18,14 @@ def get_result(point):
         "last_processed_at": metadata.get("last_processed_at", None),
         "updated_at": metadata.get("updated_at", None),
         "embedding": point.vector,
+        "score": getattr(point, 'score', None),
     }
 
 # Qdrant implementation of the database interface
 class QdrantDatabase(DatabaseInterface):
-    def __init__(self):
-        self.client = QdrantClient(host=VECTOR_DB_HOST, port=VECTOR_DB_PORT)
+    def __init__(self, host, port, collection_name):
+        self.client = QdrantClient(host=host, port=port)
+        self.collection_name = collection_name
 
     def save_face_data(self, id, photo_title, photo_id, face_index, age, gender, file_name, embedding):
         metadata = {
@@ -37,7 +38,7 @@ class QdrantDatabase(DatabaseInterface):
             "created_at": datetime.now(timezone.utc).timestamp()
         }
         self.client.upsert(
-            collection_name="face_embeddings",
+            collection_name=self.collection_name,
             points=[
                 PointStruct(
                     id=id,
@@ -87,19 +88,23 @@ class QdrantDatabase(DatabaseInterface):
 
         if points:
             self.client.upsert(
-                collection_name="face_embeddings",
+                collection_name=self.collection_name,
                 points=points
             )
             
-    def save_special_face_data(self, id, age, gender, num_people, last_processed_at, embedding):
+    def save_special_face_data(self, id, age, gender, num_people, last_processed_at, embedding, \
+            photo_id=None, photo_title=None):
         metadata = {
             "age": age,
+            "gender": gender,
             "num_people": num_people,
             "last_processed_at": last_processed_at,
+            "photo_id": photo_id,
+            "photo_title": photo_title,
             "updated_at": datetime.now(timezone.utc).timestamp()
         }
         self.client.upsert(
-            collection_name="face_embeddings",
+            collection_name=self.collection_name,
             points=[
                 PointStruct(
                     id=id,
@@ -119,7 +124,7 @@ class QdrantDatabase(DatabaseInterface):
         query_filter = {"must": filters} if filters else None
 
         results = self.client.scroll(
-            collection_name="face_embeddings",
+            collection_name=self.collection_name,
             scroll_filter=query_filter,
             limit=100,
             with_vectors=with_vectors  # 파라미터로 벡터 정보를 포함할지 여부 지정
@@ -130,25 +135,10 @@ class QdrantDatabase(DatabaseInterface):
         return data_list
 
     def get_data_by_id(self, id, with_vectors=False):
-        
-        result = self.client.retrieve(
-            collection_name="face_embeddings",
-            ids=[id],
-            with_vectors=with_vectors
-        )
 
-        if not result:
-            return None
-        record = result[0]
-        return {
-                "id": record.id,
-                "age": record.payload.get("age", None),
-                "gender": record.payload.get("gender", None),
-                "num_people": record.payload.get("num_people", None),
-                "last_processed_at": record.payload.get("last_processed_at", None),
-                "updated_at": record.payload.get("updated_at", None),
-                "embedding": record.vector,
-            }
+        point = self._get_point_by_id(id, with_vectors=with_vectors)        
+        
+        return get_result(point)
 
     def get_data_after_date_sorted(self, date_ts: float, with_vectors=False):
     
@@ -163,9 +153,9 @@ class QdrantDatabase(DatabaseInterface):
         )
 
         results = self.client.scroll(
-            collection_name="face_embeddings",
+            collection_name=self.collection_name,
             scroll_filter=query_filter,
-            limit=100,
+            limit=500,
             with_vectors=with_vectors  # 파라미터로 벡터 정보를 포함할지 여부 지정
         )
 
@@ -174,3 +164,68 @@ class QdrantDatabase(DatabaseInterface):
         data_list.sort(key=lambda x: x.get("created_at", 0))
         return data_list
 
+    def _get_point_by_id(self, id, with_vectors=False):
+        # Retrieve the vector by its ID
+        point = self.client.retrieve(
+            collection_name=self.collection_name,
+            ids=[id],
+            with_vectors=with_vectors
+            )
+
+        if not point:
+            print(f"No data found for ID: {id}")
+            return None
+        
+        return point[0]
+
+    # Function to search similar vectors in Qdrant by vector id
+    def search_similar_vectors_by_id(self, id, top_n=10):
+
+        point = self._get_point_by_id(id, with_vectors=True)
+
+        query_vector = point.vector
+
+        search_result = self.client.search(
+            collection_name=self.collection_name,
+            query_vector=query_vector,
+            limit=top_n
+        )
+
+        data_list = [get_result(point) for point in search_result]
+        return data_list
+
+    # Function to search vectors by minimum score threshold
+    def search_vectors_by_min_score(self, id, min_score, batch_size=50):
+
+        point = self._get_point_by_id(id, with_vectors=True)
+
+        query_vector = point.vector
+
+        offset = 0
+        fetched_all = False
+
+        data_list = []
+        while not fetched_all:
+            search_result = self.client.search(
+                collection_name=self.collection_name,
+                query_vector=query_vector,
+                limit=batch_size,
+                offset=offset
+            )
+
+            if not search_result:
+                break
+
+            for point in search_result:
+
+                if point.id == id:
+                    continue
+
+                if point.score < min_score:
+                    fetched_all = True
+                    break
+                data_list.append(get_result(point))
+
+            offset += batch_size
+
+        return data_list

@@ -1,6 +1,7 @@
 import uuid
 import random
 import cv2
+from datetime import datetime
 import numpy as np
 from config import S3_IMAGE_BUCKET, RESERVED_FACES, IS_FACE_RESTORATION_ENABLED
 from app import F_BASE, M_BASE, db, storage, face_detector, face_swapper, face_restorer
@@ -92,7 +93,7 @@ def get_average_faces():
     last_processed_at = max(f_l, m_l)
 
     # 현재 UTC 타임스탬프 문자열 생성
-    timestamp = last_processed_at.strftime('%Y%m%d%H%M%S')
+    timestamp = datetime.fromtimestamp(last_processed_at).strftime('%Y%m%d%H%M%S')
 
     # 새 파일명 생성
     file_name = f"mean_face.{timestamp}.jpg"
@@ -107,3 +108,21 @@ def get_average_faces():
     }
 
     return average_faces_info
+
+def view_network_graph(id):
+
+    me = db.get_data_by_id(id)
+
+    data = db.search_vectors_by_min_score(id, min_score=0.2, batch_size=50)
+    data.append(me.copy())
+
+    # face_index가 존재하면 photo_id를 photo_id_faceIndex로 변경
+    for item in data:
+        if "face_index" in item and item["face_index"] is not None:
+            item["photo_id"] = f"{item['photo_id']}_{item['face_index']}"
+
+    main_photo_id = me.get("photo_id","Me")
+    if "face_index" in me and me["face_index"] is not None:
+        main_photo_id = f"{main_photo_id}_{me['face_index']}"
+
+    return data, main_photo_id

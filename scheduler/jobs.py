@@ -2,6 +2,7 @@ from scheduler import storage, db, face_detector, face_swapper, face_restorer
 from config import S3_IMAGE_BUCKET
 from config import RESERVED_FACES
 import numpy as np
+from datetime import datetime
 from library.gadget import to_ndarray, create_face_from_vector
 
 def update_mean_faces():
@@ -47,6 +48,7 @@ def update_mean_faces():
 
     faces = sorted(faces, key=lambda face: face.bbox[0])
     
+    updated_f_v = dict()
     f_num_people = len(female_vectors)
     
     print(f"1. f_num_people : {f_num_people}, f_v[num_people] : {str(f_v["num_people"]) if f_v else 'no f_v'} ")
@@ -71,10 +73,12 @@ def update_mean_faces():
 
         print(f"1-저장. f_vector_mean : {np.mean(f_vector_mean)}, f_age_mean : {f_age_mean}")
 
-        db.save_special_face_data(
+        updated_f_v = dict(
             id = RESERVED_FACES[0], 
             age = f_age_mean,
             gender = 0,
+            photo_title = "Average Female Face",
+            photo_id = "average_female_face",
             num_people = (f_v["num_people"] if f_v else 0) + f_num_people,
             last_processed_at = last_processed_at, 
             embedding = f_vector_mean.tolist()
@@ -88,6 +92,7 @@ def update_mean_faces():
         mean_face_img = face_swapper.get(mean_face_img, faces[0], create_face_from_vector(f_vector_mean))
         print("1. face_swapper ended.")
     
+    updated_m_v = dict()
     m_num_people = len(male_vectors)
 
     print(f"2. m_num_people : {m_num_people}, m_v[num_people] : {str(m_v["num_people"]) if m_v else 'no m_v'} ")
@@ -106,10 +111,12 @@ def update_mean_faces():
 
             print(f"2. weight_a : {weight_a}, weight_b : {weight_b}")
 
-        db.save_special_face_data(
+        updated_m_v = dict(
             id = RESERVED_FACES[1], 
             age = m_age_mean,
             gender = 1,
+            photo_title = "Average Male Face",
+            photo_id = "average_male_face",
             num_people = (m_v["num_people"] if m_v else 0) + m_num_people,
             last_processed_at = last_processed_at, 
             embedding = m_vector_mean.tolist()
@@ -125,9 +132,15 @@ def update_mean_faces():
     img_face = face_restorer.restore(mean_face_img)
 
     # 현재 UTC 타임스탬프 문자열 생성
-    timestamp = last_processed_at.strftime('%Y%m%d%H%M%S')
+    timestamp = datetime.fromtimestamp(last_processed_at).strftime('%Y%m%d%H%M%S')
 
     # 새 파일명 생성
     new_filename = f"mean_face.{timestamp}.jpg"
 
     storage.upload_image(S3_IMAGE_BUCKET, new_filename, image=img_face)
+
+    if updated_f_v:
+        db.save_special_face_data(**updated_f_v)
+
+    if updated_m_v:
+        db.save_special_face_data(**updated_m_v)

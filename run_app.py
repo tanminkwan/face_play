@@ -1,12 +1,20 @@
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 import os
 import logging
 import gradio as gr
 import pandas as pd
 from config import S3_IMAGE_BUCKET
 from app import storage
-from app.face_process import process_image, get_image_list, get_average_faces
-from ui.html import average_faces_html
+from app.face_process import process_image, get_image_list, get_average_faces, \
+    view_network_graph
+from ui.html import average_faces_html, network_graph_html
 from ui.css import css
+
+app = FastAPI()
+
+# static 폴더를 정적으로 서빙
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -68,68 +76,100 @@ def view_average_faces():
     # Create an HTML block with the stats and the image    
     return average_faces_html(data, url)
 
-if __name__ == "__main__":
-    logger.info("Starting Gradio app...")
+def render_network_graph(id):
+    logger.info(f"Rendering network graph for ID: {id}")
 
-    with gr.Blocks(css=css) as demo:
+    if not id:
+        return "<p style='color:red;'>Please provide a valid ID.</p>"
 
-        with gr.Tab("Upload Image"):
-            image_input = gr.Image(type="filepath", label="Upload Image")
-            photo_title = gr.Textbox(label="Photo Title")
-            photo_id = gr.Textbox(label="Photo ID")
-            output_html = gr.HTML(label="Processed Image", elem_id="out_html")
+    # 데이터 가져오기
+    data, main_node_id = view_network_graph(id)  # 데이터 형식: [{'photo_title', 'photo_id', 'score', 'gender', 'age'}, ...]
 
-            upload_button = gr.Button("Upload")
-            upload_button.click(
-                fn=upload_image,
-                inputs=[image_input, photo_title, photo_id],
-                outputs=output_html
-            )
+    # 데이터프레임으로 변환
+    df = pd.DataFrame(data)[["photo_id", "photo_title", "gender", "age", "score"]]
+    df.columns = ["Photo ID", "Photo Title", "Gender", "Age", "Score"]
 
-        with gr.Tab("Image List"):
-            file_name_input = gr.Textbox(label="File Name", placeholder="Enter file name to filter")
-            photo_id_input = gr.Textbox(label="Photo Id", placeholder="Enter Photo Id to filter")
-            refresh_button = gr.Button("Refresh List")
+    # network_graph_html 함수에 데이터를 주입해 HTML을 렌더링
+    html = network_graph_html(data, main_node_id)
+    return df, html
 
-            image_list = gr.Dataframe(
-                headers=["ID", "File Name", "Photo ID", "Photo Title", "Age", "Gender", "Face Index"],
-                value=[],
-                interactive=True
-            )
-            selected_id = gr.Textbox(visible=False)  # Hidden Textbox to store id
+logger.info("Starting Gradio app...")
 
-            refresh_button.click(
-                fn=list_images,
-                inputs=[file_name_input, photo_id_input],
-                outputs=image_list
-            )
+with gr.Blocks(css=css) as demo:
 
-            image_list.select(
-                fn=on_row_click,  # Function to extract id
-                inputs=None,             # typically None here
-                outputs=selected_id  # Store the result in the hidden Textbox
-            )
+    with gr.Tab("Upload Image"):
+        image_input = gr.Image(type="filepath", label="Upload Image")
+        photo_title = gr.Textbox(label="Photo Title")
+        photo_id = gr.Textbox(label="Photo ID")
+        output_html = gr.HTML(label="Processed Image", elem_id="out_html")
+        upload_button = gr.Button("Upload")
+        upload_button.click(
+            fn=upload_image,
+            inputs=[image_input, photo_title, photo_id],
+            outputs=output_html
+        )
 
-            details_button = gr.Button("View Details")
-            details_output = gr.HTML(label="Image Details")
-            details_button.click(
-                fn=view_image_details,  # Function to fetch and display image
-                inputs=selected_id,  # Pass the hidden Textbox value as input
-                outputs=details_output
-            )
-        # --- Tab 3: Average Faces ---
-        with gr.Tab("Average Faces"):
-            gr.Markdown("Click below to see aggregate info about the faces and the merged (average) face image.")
+    with gr.Tab("Image List"):
+        file_name_input = gr.Textbox(label="File Name", placeholder="Enter file name to filter")
+        photo_id_input = gr.Textbox(label="Photo Id", placeholder="Enter Photo Id to filter")
+        refresh_button = gr.Button("Refresh List")
 
-            average_button = gr.Button("Show Average Faces")
-            average_output = gr.HTML(label="Average Faces Details", elem_id="out_html")
+        image_list = gr.Dataframe(
+            headers=["ID", "File Name", "Photo ID", "Photo Title", "Age", "Gender", "Face Index"],
+            value=[],
+            interactive=True
+        )
+        selected_id = gr.Textbox(visible=False)  # Hidden Textbox to store id
 
-            average_button.click(
-                fn=view_average_faces,
-                inputs=None,
-                outputs=average_output
-            )
+        refresh_button.click(
+            fn=list_images,
+            inputs=[file_name_input, photo_id_input],
+            outputs=image_list
+        )
 
-    demo.queue()
-    demo.launch(server_name="0.0.0.0", server_port=7860, debug=True)
-    logger.info("Gradio app launched successfully.")
+        image_list.select(
+            fn=on_row_click,  # Function to extract id
+            inputs=None,             # typically None here
+            outputs=selected_id  # Store the result in the hidden Textbox
+        )
+
+        details_button = gr.Button("View Details")
+        details_output = gr.HTML(label="Image Details")
+        details_button.click(
+            fn=view_image_details,  # Function to fetch and display image
+            inputs=selected_id,  # Pass the hidden Textbox value as input
+            outputs=details_output
+        )
+    # --- Tab 3: Average Faces ---
+    with gr.Tab("Average Faces"):
+        gr.Markdown("Click below to see aggregate info about the faces and the merged (average) face image.")
+
+        average_button = gr.Button("Show Average Faces")
+        average_output = gr.HTML(label="Average Faces Details", elem_id="out_html")
+
+        average_button.click(
+            fn=view_average_faces,
+            inputs=None,
+            outputs=average_output
+        )
+
+    with gr.Tab("Network Graph"):
+        gr.Markdown("Enter an ID to visualize the associated network graph.")
+
+        input_id = gr.Textbox(label="ID", placeholder="Enter ID")
+        view_button = gr.Button("View")
+
+        network_output = gr.HTML(label="Network Graph", elem_id="out_html")
+        data_table = gr.Dataframe(headers=["Photo ID", "Photo Name", "Gender", "Age", "Score"], label="Graph Data")
+
+        view_button.click(
+            fn=render_network_graph,
+            inputs=input_id,
+            outputs=[data_table, network_output]
+        )
+
+#demo.queue()
+#demo.launch(server_name="0.0.0.0", server_port=7860, allowed_paths=["./static"], debug=True)
+logger.info("Gradio app launched successfully.")
+# Gradio 앱을 FastAPI에 통합
+app = gr.mount_gradio_app(app, demo, path="/")
