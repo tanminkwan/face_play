@@ -119,10 +119,10 @@ def view_network_graph(id):
     # face_index가 존재하면 photo_id를 photo_id_faceIndex로 변경
     for item in data:
         if "face_index" in item and item["face_index"] is not None:
-            item["photo_id"] = f"{item['photo_id']}_{item['face_index']}"
+            item["photo_id"] = f"{item['photo_id']}__{item['face_index']}"
 
     main_photo_id = me.get("photo_id","Me")
     if "face_index" in me and me["face_index"] is not None:
-        main_photo_id = f"{main_photo_id}_{me['face_index']}"
+        main_photo_id = f"{main_photo_id}__{me['face_index']}"
 
     return data, main_photo_id
