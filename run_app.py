@@ -83,11 +83,19 @@ def render_network_graph(id):
         return "<p style='color:red;'>Please provide a valid ID.</p>"
 
     # 데이터 가져오기
-    data, main_node_id = view_network_graph(id)  # 데이터 형식: [{'photo_title', 'photo_id', 'score', 'gender', 'age'}, ...]
+    data, main_node_id = view_network_graph(id)  # 데이터 형식: List[FaceEmbeddings]
+
+    if not data:
+        return "<p style='color:red;'>No data found for the given ID.</p>"
 
     # 데이터프레임으로 변환
-    df = pd.DataFrame(data)[["photo_id", "photo_title", "gender", "age", "score"]]
-    df.columns = ["Photo ID", "Photo Title", "Gender", "Age", "Score"]
+    df = pd.DataFrame([{
+        "photo_id": item.photo_id,
+        "photo_title": item.photo_title,
+        "gender": "Male" if item.gender == 1 else "Female",
+        "age": item.age,
+        "score": item.score
+    } for item in data])
 
     # network_graph_html 함수에 데이터를 주입해 HTML을 렌더링
     html = network_graph_html(data, main_node_id)

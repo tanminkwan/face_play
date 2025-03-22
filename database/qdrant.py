@@ -2,86 +2,92 @@ from datetime import datetime, timezone
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct, Filter, FieldCondition, Range
 from database.db_interface import DatabaseInterface
+from typing import List, Dict, Optional
+from pydantic import BaseModel
+from database.models import FaceEmbeddings
 
-def get_result(point):
+def get_result(point) -> FaceEmbeddings:
     metadata = point.payload
+    return FaceEmbeddings(
+        id=point.id,
+        photo_id=metadata.get("photo_id"),
+        photo_title=metadata.get("photo_title"),
+        face_index=metadata.get("face_index"),
+        age=metadata.get("age"),
+        gender=metadata.get("gender"),
+        file_name=metadata.get("file_name"),
+        created_at=metadata.get("created_at"),
+        num_people=metadata.get("num_people"),
+        last_processed_at=metadata.get("last_processed_at"),
+        updated_at=metadata.get("updated_at"),
+        embedding=point.vector,
+        score=getattr(point, 'score', None),
+    )
+
+def create_metadata(face_data: FaceEmbeddings, created_at: Optional[float] = None) -> dict:
+    """
+    Create metadata dictionary for a FaceData object.
+
+    :param face_data: A FaceData object.
+    :param created_at: Optional timestamp for the created_at field. Defaults to the current time.
+    :return: Metadata dictionary.
+    """
     return {
-        "id": point.id,
-        "photo_id": metadata.get("photo_id", None),
-        "photo_title": metadata.get("photo_title", None),
-        "age": metadata.get("age", None),
-        "gender": metadata.get("gender", None),
-        "face_index": metadata.get("face_index", None),
-        "file_name": metadata.get("file_name", None),
-        "created_at": metadata.get("created_at", None),
-        "num_people": metadata.get("num_people", None),
-        "last_processed_at": metadata.get("last_processed_at", None),
-        "updated_at": metadata.get("updated_at", None),
-        "embedding": point.vector,
-        "score": getattr(point, 'score', None),
+        "photo_title": face_data.photo_title,
+        "photo_id": face_data.photo_id,
+        "face_index": face_data.face_index,
+        "age": face_data.age,
+        "gender": face_data.gender,
+        "file_name": face_data.file_name,
+        "last_processed_at": face_data.last_processed_at,
+        "num_people": face_data.num_people,
+        "updated_at": datetime.now(timezone.utc).timestamp(),
+        "created_at": created_at
     }
 
 # Qdrant implementation of the database interface
 class QdrantDatabase(DatabaseInterface):
+
     def __init__(self, host, port, collection_name):
         self.client = QdrantClient(host=host, port=port)
         self.collection_name = collection_name
 
-    def save_face_data(self, id, photo_title, photo_id, face_index, age, gender, file_name, embedding):
-        metadata = {
-            "photo_title": photo_title,
-            "photo_id": photo_id,
-            "face_index": face_index,
-            "age": age,
-            "gender": gender,
-            "file_name": file_name,
-            "created_at": datetime.now(timezone.utc).timestamp()
-        }
+    def save_data(self, face_data: BaseModel):
+        """
+        Save a single face data record into Qdrant.
+
+        :param face_data: A FaceEmbeddings object.
+        """
+        metadata = create_metadata(face_data)
+
         self.client.upsert(
             collection_name=self.collection_name,
             points=[
                 PointStruct(
-                    id=id,
-                    vector=embedding,
+                    id=face_data.id,
+                    vector=face_data.embedding,
                     payload=metadata
                 )
             ]
         )
 
-    def save_face_data_batch(self, face_data_list):
+    def save_data_batch(self, data_list: List[BaseModel]):
         """
         Save multiple face data records into Qdrant in one batch.
 
-        :param face_data_list: A list of dicts, each containing the fields:
-            {
-              "id": unique_id_for_the_face,
-              "photo_title": ...,
-              "photo_id": ...,
-              "face_index": ...,
-              "age": ...,
-              "gender": ...,
-              "file_name": ...,
-              "embedding": np.ndarray or list[float]
-            }
+        :param data_list: A list of FaceEmbeddings objects.
         """
         points = []
         current_time = datetime.now(timezone.utc).timestamp()
 
-        for data in face_data_list:
-            metadata = {
-                "photo_title": data.get("photo_title"),
-                "photo_id": data.get("photo_id"),
-                "face_index": data.get("face_index"),
-                "age": data.get("age"),
-                "gender": data.get("gender"),
-                "file_name": data.get("file_name"),
-                "created_at": current_time  # or you can do per-item time
-            }
+        for data in data_list:
+            metadata = create_metadata(data, created_at=current_time)
 
+            print(f"meta : {metadata}")
             points.append(
                 PointStruct(
-                    id=data["id"],
-                    vector=data["embedding"],
+                    id=data.id,
+                    vector=data.embedding,
                     payload=metadata
                 )
             )
@@ -92,34 +98,18 @@ class QdrantDatabase(DatabaseInterface):
                 points=points
             )
             
-    def save_special_face_data(self, id, age, gender, num_people, last_processed_at, embedding, \
-            photo_id=None, photo_title=None):
-        metadata = {
-            "age": age,
-            "gender": gender,
-            "num_people": num_people,
-            "last_processed_at": last_processed_at,
-            "photo_id": photo_id,
-            "photo_title": photo_title,
-            "updated_at": datetime.now(timezone.utc).timestamp()
-        }
-        self.client.upsert(
-            collection_name=self.collection_name,
-            points=[
-                PointStruct(
-                    id=id,
-                    vector=embedding,
-                    payload=metadata
-                )
-            ]
-        )
+    def get_data(self, filters: Dict=None, with_vectors=False) -> List[BaseModel]:
+        """
+        Retrieve data from Qdrant based on filters.
 
-    def get_data(self, file_name=None, photo_id=None, with_vectors=False):
-        filters = []
-        if file_name:
-            filters.append({"key": "file_name", "match": {"value": file_name}})
-        if photo_id:
-            filters.append({"key": "photo_id", "match": {"value": photo_id}})
+        :param file_name: Filter by file name.
+        :param photo_id: Filter by photo ID.
+        :param with_vectors: Whether to include vector data.
+        :return: A list of FaceEmbeddings objects.
+        """
+        filters = [
+            {"key": key, "match": {"value": value}} for key, value in filters.items() if value
+        ]
 
         query_filter = {"must": filters} if filters else None
 
@@ -130,18 +120,30 @@ class QdrantDatabase(DatabaseInterface):
             with_vectors=with_vectors  # 파라미터로 벡터 정보를 포함할지 여부 지정
         )
 
-        data_list = [get_result(point) for point in results[0]]
+        return [get_result(point) for point in results[0]]
 
-        return data_list
+    def get_data_by_id(self, id, with_vectors=False) -> BaseModel:
+        """
+        Retrieve a single data record by ID.
 
-    def get_data_by_id(self, id, with_vectors=False):
-
-        point = self._get_point_by_id(id, with_vectors=with_vectors)        
+        :param id: The ID of the record.
+        :param with_vectors: Whether to include vector data.
+        :return: A BaseModel object.
+        """
+        point = self._get_point_by_id(id, with_vectors=with_vectors)
+        if not point:
+            return None    
         
         return get_result(point)
 
-    def get_data_after_date_sorted(self, date_ts: float, with_vectors=False):
-    
+    def get_data_after_date(self, date_ts: float, with_vectors=False) -> List[BaseModel]:
+        """
+        Retrieve data created after a specific timestamp.
+
+        :param date_ts: The timestamp to filter data.
+        :param with_vectors: Whether to include vector data.
+        :return: A list of BaseModel objects.
+        """
         # 숫자형 필드 "created_at"를 대상으로 Range 필터 적용
         query_filter = Filter(
             must=[
@@ -160,8 +162,8 @@ class QdrantDatabase(DatabaseInterface):
         )
 
         data_list = [get_result(point) for point in results[0]]
-        # 정렬은 기존 ISO 8601 문자열인 "created_at" 기준으로 수행 (문자열 비교도 올바른 순서를 보장함)
-        data_list.sort(key=lambda x: x.get("created_at", 0))
+        data_list.sort(key=lambda x: x.created_at)
+
         return data_list
 
     def _get_point_by_id(self, id, with_vectors=False):
@@ -179,8 +181,14 @@ class QdrantDatabase(DatabaseInterface):
         return point[0]
 
     # Function to search similar vectors in Qdrant by vector id
-    def search_similar_vectors_by_id(self, id, top_n=10):
+    def search_similar_vectors_by_id(self, id, top_n=10) -> List[BaseModel]:
+        """
+        Search for similar vectors in Qdrant by vector ID.
 
+        :param id: The ID of the vector to search for.
+        :param top_n: The number of similar vectors to retrieve.
+        :return: A list of BaseModel objects.
+        """
         point = self._get_point_by_id(id, with_vectors=True)
 
         query_vector = point.vector
@@ -191,12 +199,18 @@ class QdrantDatabase(DatabaseInterface):
             limit=top_n
         )
 
-        data_list = [get_result(point) for point in search_result]
-        return data_list
+        return [get_result(point) for point in search_result]
 
     # Function to search vectors by minimum score threshold
-    def search_vectors_by_min_score(self, id, min_score, batch_size=50):
+    def search_vectors_by_min_score(self, id, min_score, batch_size=50) -> List[BaseModel]:
+        """
+        Search for vectors with a minimum score threshold.
 
+        :param id: The ID of the vector to search for.
+        :param min_score: The minimum score threshold.
+        :param batch_size: The number of results to fetch per batch.
+        :return: A list of FaceEmbeddings objects.
+        """
         point = self._get_point_by_id(id, with_vectors=True)
 
         query_vector = point.vector

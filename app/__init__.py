@@ -10,8 +10,7 @@ from storage import storage_client
 db = db_connection(
     VECTOR_DB, 
     host=VECTOR_DB_HOST, 
-    port=VECTOR_DB_PORT, 
-    table_name="face_embeddings"
+    port=VECTOR_DB_PORT
     )
 
 storage = storage_client(

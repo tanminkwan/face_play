@@ -1,59 +1,4 @@
-def average_faces_html(data, url):
-    return f"""
-    <div style="width: 100%; max-width: 1080px; margin: auto; font-family: sans-serif;">
-        <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 20px;">
-            <div style="flex: 1; padding: 10px; text-align: center; border: 1px solid #ddd; margin-right: 5px; border-radius: 8px;">
-                <h3>여성 정보</h3>
-                <p><strong>참여자 수:</strong> {data['f_num_people']}</p>
-                <p><strong>평균 나이:</strong> {data['f_age']:.2f}</p>
-            </div>
-            <div style="flex: 1; padding: 10px; text-align: center; border: 1px solid #ddd; margin-left: 5px; border-radius: 8px;">
-                <h3>남성 정보</h3>
-                <p><strong>참여자 수:</strong> {data['m_num_people']}</p>
-                <p><strong>평균 나이:</strong> {data['m_age']:.2f}</p>
-            </div>
-        </div>
-        <div style="text-align: center;">
-            <img src="{url}" style="width:100%; height:auto; max-width: 1080px; border-radius: 8px;"/>
-        </div>
-    </div>
-    """
 
-# ui/html.py에 추가할 코드
-import os
-
-def network_graph_html(data, main_node_id):
-    """
-    data: [{'photo_title': str, 'photo_id': str, 'score': float, 'gender': int, 'age': int}, ...]
-    main_node_id: str (중심 노드의 photo_id)
-    """
-    nodes = []
-    links = []
-
-    # 노드 생성
-    for item in data:
-        nodes.append({
-            'id': item.photo_id,
-            'name': item.photo_title,
-            'gender': item.gender,
-            'age': item.age,
-            'score': item.score,
-        })
-
-    # 중심 노드를 기준으로 링크 생성
-    for item in data:
-        if item.photo_id != main_node_id:
-            links.append({
-                'source': main_node_id,
-                'target': item.photo_id,
-                'score': item.score
-            })
-
-    import json
-    graph_data = json.dumps({"nodes": nodes, "links": links})
-
-    # 완전한 HTML 문서 (중괄호 이스케이프 처리)
-    html_template = """
     <!DOCTYPE html>
     <html lang='en'>
     <head>
@@ -69,7 +14,7 @@ def network_graph_html(data, main_node_id):
     <body>
         <div id='graph'></div>
         <script>
-            const data = __GRAPH_DATA__;
+            const data = {"nodes": [{"id": "a__0", "name": "a", "gender": 0, "age": 35.0, "score": null}], "links": []};
             const width = window.innerWidth;
             const height = window.innerHeight;
 
@@ -130,10 +75,10 @@ def network_graph_html(data, main_node_id):
                     const connectedLink = data.links.find(l => l.target === d.id || l.source === d.id);
                     const score = connectedLink ? connectedLink.score.toFixed(2) : 'N/A';
                     alert(
-                        'Photo ID: ' + d.id + "\\n" +
-                        'Name: ' + d.name + "\\n" +
-                        'Gender: ' + d.gender + "\\n" +
-                        'Age: ' + d.age + "\\n" +
+                        'Photo ID: ' + d.id + "\n" +
+                        'Name: ' + d.name + "\n" +
+                        'Gender: ' + d.gender + "\n" +
+                        'Age: ' + d.age + "\n" +
                         'Score: ' + d.score
                     );
                 });
@@ -161,17 +106,4 @@ def network_graph_html(data, main_node_id):
         </script>
     </body>
     </html>
-    """
-
-    html_content = html_template.replace("__GRAPH_DATA__", graph_data)
-
-    # 웹 배포 환경을 고려해 static 디렉토리에 저장
-    static_dir = os.path.join(os.getcwd(), "static")
-    os.makedirs(static_dir, exist_ok=True)
-    file_name = f"graph_{main_node_id}.html"
-    file_path = os.path.join(static_dir, file_name)
-
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(html_content)
-
-    return f"<p>그래프가 <a href='/static/{file_name}' target='_blank'>새 창</a>에서 열립니다.</p>"
+    
