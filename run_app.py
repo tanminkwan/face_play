@@ -32,14 +32,14 @@ def upload_image(image, photo_title, photo_id):
     url = storage.get_file_url(result["bucket"], result["file_name"])
     return f"<img src='{url}' style='max-width: 1080px; height: auto;'/>"
 
-def list_images(file_name=None, photo_id=None):
-    logger.info(f"Fetching image list for file_name: {file_name}, photo_id: {photo_id}")
-    images = get_image_list(file_name, photo_id)
+def list_images(photo_id=None, photo_title=None):
+    logger.info(f"Fetching image list for photo_title: {photo_title}, photo_id: {photo_id}")
+    images = get_image_list(photo_id, photo_title)
     logger.info(f"Retrieved {len(images)} images.")
-    return pd.DataFrame(images, columns=["id", "file_name", "photo_id", "photo_title", "age", "gender", "face_index"])
+    return pd.DataFrame(images, columns=["face_id", "photo_id", "photo_title", "age", "gender", "face_index", "file_name"])
 
 def on_row_click(evt: gr.SelectData):
-    logger.info(f"[on_row_click] Event data:\n{evt}")
+    logger.info(f"[on_row_click] Event data:\n{evt.value} {evt}")
     if not evt.value:
         return ""
     # Suppose your DataFrame columns are ["id", "photo_id", "photo_title", "age", "gender", "face_index"]
@@ -80,35 +80,38 @@ def render_network_graph(id):
     logger.info(f"Rendering network graph for ID: {id}")
 
     if not id:
-        return "<p style='color:red;'>Please provide a valid ID.</p>"
+        return "", None, "<p style='color:red;'>Please provide a valid ID.</p>"
 
     # 데이터 가져오기
     data, main_node_id = view_network_graph(id)  # 데이터 형식: List[FaceEmbeddings]
 
     if not data:
-        return "<p style='color:red;'>No data found for the given ID.</p>"
+        return "", None, "<p style='color:red;'>No data found for the given ID.</p>"
 
     # 데이터프레임으로 변환
     df = pd.DataFrame([{
         "photo_id": item.photo_id,
         "photo_title": item.photo_title,
+        "score": item.score,
         "gender": "Male" if item.gender == 1 else "Female",
         "age": item.age,
-        "score": item.score
     } for item in data])
 
     # network_graph_html 함수에 데이터를 주입해 HTML을 렌더링
     html = network_graph_html(data, main_node_id)
-    return df, html
+    return "", df, html
 
 logger.info("Starting Gradio app...")
 
 with gr.Blocks(css=css) as demo:
 
+    selected_id = gr.Textbox(label="Current Face ID", interactive=False, visible=True)  # Hidden Textbox to store id
+
     with gr.Tab("Upload Image"):
         image_input = gr.Image(type="filepath", label="Upload Image")
-        photo_title = gr.Textbox(label="Photo Title")
-        photo_id = gr.Textbox(label="Photo ID")
+        with gr.Row():
+            photo_id = gr.Textbox(label="Photo ID")
+            photo_title = gr.Textbox(label="Photo Title")
         output_html = gr.HTML(label="Processed Image", elem_id="out_html")
         upload_button = gr.Button("Upload")
         upload_button.click(
@@ -118,20 +121,24 @@ with gr.Blocks(css=css) as demo:
         )
 
     with gr.Tab("Image List"):
-        file_name_input = gr.Textbox(label="File Name", placeholder="Enter file name to filter")
-        photo_id_input = gr.Textbox(label="Photo Id", placeholder="Enter Photo Id to filter")
-        refresh_button = gr.Button("Refresh List")
+        with gr.Row():
+            photo_id_input = gr.Textbox(label="Photo Id", placeholder="Enter Photo Id to filter")
+            photo_title_input = gr.Textbox(label="Photo Title", placeholder="Enter photo title to filter")
+        refresh_button = gr.Button("View List")
 
         image_list = gr.Dataframe(
-            headers=["ID", "File Name", "Photo ID", "Photo Title", "Age", "Gender", "Face Index"],
+            headers=["Face ID", "Photo ID", "Photo Title", "Age", "Gender", "Face Index", "File Name"],
             value=[],
             interactive=True
         )
-        selected_id = gr.Textbox(visible=False)  # Hidden Textbox to store id
+
+        with gr.Row():
+            details_button = gr.Button("View Details")
+            go_network_button = gr.Button("Go to Network Graph")
 
         refresh_button.click(
             fn=list_images,
-            inputs=[file_name_input, photo_id_input],
+            inputs=[photo_id_input, photo_title_input],
             outputs=image_list
         )
 
@@ -141,13 +148,14 @@ with gr.Blocks(css=css) as demo:
             outputs=selected_id  # Store the result in the hidden Textbox
         )
 
-        details_button = gr.Button("View Details")
         details_output = gr.HTML(label="Image Details")
         details_button.click(
             fn=view_image_details,  # Function to fetch and display image
             inputs=selected_id,  # Pass the hidden Textbox value as input
             outputs=details_output
         )
+        progress_html = gr.HTML(label="Drawing Network Graph", elem_id="out_html")
+
     # --- Tab 3: Average Faces ---
     with gr.Tab("Average Faces"):
         gr.Markdown("Click below to see aggregate info about the faces and the merged (average) face image.")
@@ -167,15 +175,42 @@ with gr.Blocks(css=css) as demo:
         input_id = gr.Textbox(label="ID", placeholder="Enter ID")
         view_button = gr.Button("View")
 
-        network_output = gr.HTML(label="Network Graph", elem_id="out_html")
-        data_table = gr.Dataframe(headers=["Photo ID", "Photo Name", "Gender", "Age", "Score"], label="Graph Data")
-
+        # → 여기서 정의
+        data_table = gr.Dataframe(
+            headers=["Photo ID", "Photo Title", "Score", "Gender", "Age"],
+            label="Graph Data"
+        )
+        network_output = gr.HTML(label="Network Graph")
+        # (중요) data_table, network_output을 탭 내에서 새로 만들지 않고,
+        #       이미 정의해둔 컴포넌트(data_table, network_output)를 "표시"만.
         view_button.click(
             fn=render_network_graph,
             inputs=input_id,
             outputs=[data_table, network_output]
         )
 
+    go_network_button.click(
+        fn=render_network_graph,
+        inputs=selected_id,                 # pass the hidden text ID
+        outputs=[progress_html, data_table, network_output],
+    ).then(
+        fn=None,
+        inputs=None,
+        outputs=None,
+        js="""
+            function() {
+                // Find the tab button whose text is "Network Graph" and click it.
+                const tabs = document.querySelectorAll('button[role="tab"]');
+                for (let t of tabs) {
+                    if (t.innerText.trim() === "Network Graph") {
+                        t.click();
+                        break;
+                    }
+                }
+                return [];
+            }
+            """
+    )
 #demo.queue()
 #demo.launch(server_name="0.0.0.0", server_port=7860, allowed_paths=["./static"], debug=True)
 logger.info("Gradio app launched successfully.")

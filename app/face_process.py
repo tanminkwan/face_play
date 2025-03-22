@@ -52,17 +52,17 @@ def process_image(image, photo_title, photo_id):
 
     return {"bucket": S3_IMAGE_BUCKET, "file_name": file_name}
 
-def get_image_list(file_name=None, photo_id=None):
-    results = db.get_data(filters=dict(file_name=file_name, photo_id=photo_id))
+def get_image_list(photo_id=None, photo_title=None):
+    results = db.get_data(filters=dict(photo_id=photo_id, photo_title=photo_title))
     images = [
         {
-            "id": item.id,
-            "file_name": item.file_name,
+            "face_id": item.id,
             "photo_id": item.photo_id,
             "photo_title": item.photo_title,
             "age": item.age,
             "gender": item.gender,
             "face_index": item.face_index,
+            "file_name": item.file_name,
         }
         for item in results
     ]
