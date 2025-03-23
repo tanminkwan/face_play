@@ -10,6 +10,7 @@ from app.face_process import process_image, get_image_list, get_average_faces, \
     view_network_graph
 from ui.html import average_faces_html, network_graph_html
 from ui.css import css
+from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 
@@ -76,29 +77,38 @@ def view_average_faces():
     # Create an HTML block with the stats and the image    
     return average_faces_html(data, url)
 
+@app.get("/network-graph/{id}", response_class=HTMLResponse)
+def get_network_graph(id: str):
+    logger.info(f"Generating network graph for ID: {id}")
+
+    data, main_node_id = view_network_graph(id)
+    if not data:
+        return "<p style='color:red;'>No data found for the given ID.</p>"
+
+    return network_graph_html(data, main_node_id)
+
 def render_network_graph(id):
     logger.info(f"Rendering network graph for ID: {id}")
 
     if not id:
-        return "", None, "<p style='color:red;'>Please provide a valid ID.</p>"
+        return "", pd.DataFrame(), "<p style='color:red;'>Please provide a valid ID.</p>"
 
     # 데이터 가져오기
-    data, main_node_id = view_network_graph(id)  # 데이터 형식: List[FaceEmbeddings]
-
+    data, _ = view_network_graph(id)
     if not data:
-        return "", None, "<p style='color:red;'>No data found for the given ID.</p>"
+        return "", pd.DataFrame(), "<p style='color:red;'>No data found for the given ID.</p>"
 
     # 데이터프레임으로 변환
     df = pd.DataFrame([{
         "photo_id": item.photo_id,
         "photo_title": item.photo_title,
-        "score": item.score,
         "gender": "Male" if item.gender == 1 else "Female",
         "age": item.age,
+        "score": item.score
     } for item in data])
 
-    # network_graph_html 함수에 데이터를 주입해 HTML을 렌더링
-    html = network_graph_html(data, main_node_id)
+    # Return the FastAPI URL for the network graph
+    html = f"<p>View the network graph <a href='/network-graph/{id}' target='_blank'>here</a>.</p>"
     return "", df, html
 
 logger.info("Starting Gradio app...")
@@ -112,8 +122,8 @@ with gr.Blocks(css=css) as demo:
         with gr.Row():
             photo_id = gr.Textbox(label="Photo ID")
             photo_title = gr.Textbox(label="Photo Title")
-        output_html = gr.HTML(label="Processed Image", elem_id="out_html")
         upload_button = gr.Button("Upload")
+        output_html = gr.HTML(label="Processed Image", elem_id="out_html")
         upload_button.click(
             fn=upload_image,
             inputs=[image_input, photo_title, photo_id],
@@ -180,13 +190,13 @@ with gr.Blocks(css=css) as demo:
             headers=["Photo ID", "Photo Title", "Score", "Gender", "Age"],
             label="Graph Data"
         )
-        network_output = gr.HTML(label="Network Graph")
+        network_output = gr.HTML(label="Network Graph", elem_id="out_html")
         # (중요) data_table, network_output을 탭 내에서 새로 만들지 않고,
         #       이미 정의해둔 컴포넌트(data_table, network_output)를 "표시"만.
         view_button.click(
             fn=render_network_graph,
             inputs=input_id,
-            outputs=[data_table, network_output]
+            outputs=[network_output, data_table, network_output]
         )
 
     go_network_button.click(

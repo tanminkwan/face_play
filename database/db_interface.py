@@ -47,7 +47,7 @@ class DatabaseInterface(ABC):
         pass
 
     @abstractmethod
-    def search_vectors_by_min_score(self, id: str, min_score: float, batch_size: int = 50) -> List[BaseModel]:
+    def search_vectors_by_min_score(self, id: str, min_score: float, include_self: bool = False, batch_size: int = 50) -> List[BaseModel]:
         """
         Search for vectors with a minimum score threshold.
         """

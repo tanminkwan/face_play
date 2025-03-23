@@ -14,15 +14,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # (5) 나머지 소스코드 복사
 COPY app /face-play/app
+COPY database /face-play/database
 COPY library /face-play/library
 COPY storage /face-play/storage
-COPY database /face-play/database
 COPY ui /face-play/ui
-COPY scheduler /face-play/scheduler
 COPY config.py .
 COPY download_models.py .
 COPY run_app.py .
 COPY run_scheduler.py .
+COPY run_app_batch.py .
 
 COPY inswapper_128.onnx /models/inswapper_128.onnx
 COPY codeformer.pth /models/codeformer.pth

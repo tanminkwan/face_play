@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import List, Dict
 import numpy as np
 
 class StorageInterface(ABC):
@@ -33,8 +33,15 @@ class StorageInterface(ABC):
         pass
 
     @abstractmethod
-    def load_base_images_list(self) -> Tuple[List[np.ndarray], List[np.ndarray]]:
+    def load_base_images_list(self, bucket: str, prefixes: List) -> Dict[str, List[np.ndarray]]:
         """
         기본 이미지들을 로드하여, 여성 이미지 리스트와 남성 이미지 리스트의 튜플로 반환합니다.
+        """
+        pass
+
+    @abstractmethod
+    def delete_all_objects_batch(self, bucket: str, recursive: bool = True)-> None:
+        """
+        해당 버킷의 모든 객체를 배치로 삭제합니다. (빠름)
         """
         pass

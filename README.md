@@ -170,3 +170,7 @@ Downloading: "https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/pars
 
 100%|████████████████████████████████████████████████████████████████████| 81.4M/81.4M [00:01<00:00, 60.3MB/s]
 ```
+###
+- 대량 얼굴 data
+- https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
+- 

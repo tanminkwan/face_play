@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <title>Network Graph</title>
+    <script src='https://d3js.org/d3.v7.min.js'></script>
+    <style>
+        body { margin: 0; font-family: Arial; overflow-x: hidden; }
+        #graph-container {
+            width: 100%;
+            height: 70vh; /* 화면 높이의 70%로 설정 */
+            position: relative;
+        }
+        #info-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10;
+            display: none;
+            max-width: 250px;
+        }
+        #image-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10;
+            display: none;
+            text-align: center;
+        }
+        #image-panel img {
+            max-width: 180px;
+            max-height: 180px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .link { stroke: #999; stroke-opacity: 0.6; }
+        .label { font-size: 12px; pointer-events: none; }
+        .image-container {
+            position: relative;
+            margin: 5px;
+        }
+        .image-gallery { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+        .image-gallery img { margin: 10px; border-radius: 8px; max-width: 150px; max-height: 150px; cursor: pointer; }
+        .photo-id-text {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 1;
+        }
+        .info-title {
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        .info-value {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div id="graph-container">
+        <div id="info-panel">
+            <div class="info-title">Photo ID:</div>
+            <div id="info-photo-id" class="info-value"></div>
+            <div class="info-title">Name:</div>
+            <div id="info-name" class="info-value"></div>
+            <div class="info-title">Gender:</div>
+            <div id="info-gender" class="info-value"></div>
+            <div class="info-title">Age:</div>
+            <div id="info-age" class="info-value"></div>
+            <div class="info-title">Score:</div>
+            <div id="info-score" class="info-value"></div>
+        </div>
+        <div id="image-panel">
+            <img id="node-image" src="" alt="Node Image">
+            <div id="image-photo-id" class="info-value"></div>
+        </div>
+        <div id="graph"></div>
+    </div>
+    <div class="image-gallery">
+        {% for node in graph_data.nodes %}
+        <div class="image-container">
+            <div class="photo-id-text">{{ node.photo_id }} : {{ "%.2f"|format(node.score) }}</div>
+            <a href="{{ node.file_url }}" target="_blank">
+                <img src="{{ node.file_url }}" alt="{{ node.name }}" title="{{ node.name }}">
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        const data = {{ graph_data | safe }};
+        
+        // 반응형 그래프 크기 설정
+        function updateGraphSize() {
+            const graphContainer = document.getElementById('graph-container');
+            const width = graphContainer.clientWidth;
+            const height = graphContainer.clientHeight;
+            
+            d3.select('#graph svg')
+                .attr('width', width)
+                .attr('height', height);
+                
+            // 시뮬레이션 중앙 위치 업데이트
+            if (simulation) {
+                simulation.force('center', d3.forceCenter(width / 2, height / 2));
+                simulation.alpha(0.3).restart();
+            }
+        }
+
+        const graphContainer = document.getElementById('graph-container');
+        const width = graphContainer.clientWidth;
+        const height = graphContainer.clientHeight;
+
+        const svg = d3.select('#graph').append('svg')
+            .attr('width', width)
+            .attr('height', height);
+
+        function drag(simulation) {
+            return d3.drag()
+                .on('start', function(event, d) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                })
+                .on('drag', function(event, d) {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                })
+                .on('end', function(event, d) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                });
+        }
+
+        const simulation = d3.forceSimulation(data.nodes)
+            .force('link', d3.forceLink(data.links).id(d => d.photo_id).distance(200))
+            .force('charge', d3.forceManyBody().strength(-400))
+            .force('center', d3.forceCenter(width / 2, height / 2));
+
+        const link = svg.selectAll('.link')
+            .data(data.links)
+            .enter().append('line')
+            .attr('class', 'link')
+            .attr('stroke', '#999')
+            .attr('stroke-opacity', 0.6)
+            .attr('stroke-width', d => Math.max(d.score * 10, 3));
+
+        const linkLabel = svg.selectAll('.link-label')
+            .data(data.links)
+            .enter().append('text')
+            .attr('class', 'label')
+            .text(d => d.score.toFixed(2));
+
+        const node = svg.selectAll('.node')
+            .data(data.nodes)
+            .enter().append('g')
+            .attr('class', 'node')
+            .call(drag(simulation));
+
+        node.append('circle')
+            .attr('r', d => {
+                return d.score * 50; // Scale radius: 15 (base) + 35 (max for score 1)
+            })
+            .attr('fill', d => d.gender === 'Female' ? '#ffb6c1' : '#add8e6')
+            .attr('stroke', '#555')
+            .attr('stroke-width', 2)
+            .on('click', function(event, d) {
+                // 왼쪽 정보 패널 업데이트
+                const infoPanel = document.getElementById('info-panel');
+                document.getElementById('info-photo-id').textContent = d.photo_id;
+                document.getElementById('info-name').textContent = d.name;
+                document.getElementById('info-gender').textContent = d.gender;
+                document.getElementById('info-age').textContent = d.age;
+                document.getElementById('info-score').textContent = d.score.toFixed(2);
+                infoPanel.style.display = 'block';
+                
+                // 오른쪽 이미지 패널 업데이트
+                const imagePanel = document.getElementById('image-panel');
+                const nodeImage = document.getElementById('node-image');
+                document.getElementById('image-photo-id').textContent = d.photo_id;
+                
+                // file_url이 있는 경우 이미지 표시 (템플릿 변수가 실제 값으로 대체된 후)
+                if (d.file_url) {
+                    nodeImage.src = d.file_url;
+                    imagePanel.style.display = 'block';
+                } else {
+                    // file_url 없을 경우 placeholder 사용
+                    nodeImage.src = `/api/placeholder/180/180`;
+                    imagePanel.style.display = 'block';
+                }
+                
+                event.stopPropagation();
+            });
+
+        // 배경을 클릭하면 정보 패널과 이미지 패널 숨기기
+        svg.on('click', function() {
+            document.getElementById('info-panel').style.display = 'none';
+            document.getElementById('image-panel').style.display = 'none';
+        });
+
+        node.append('text')
+            .attr('class', 'label')
+            .attr('dy', 4)
+            .attr('x', 20)
+            .text(d => d.photo_id);
+
+        simulation.on('tick', function() {
+            link
+                .attr('x1', d => d.source.x)
+                .attr('y1', d => d.source.y)
+                .attr('x2', d => d.target.x)
+                .attr('y2', d => d.target.y);
+
+            linkLabel
+                .attr('x', d => (d.source.x + d.target.x) / 2)
+                .attr('y', d => (d.source.y + d.target.y) / 2);
+
+            node
+                .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+        });
+
+        // 창 크기가 변경될 때 그래프 크기 업데이트
+        window.addEventListener('resize', updateGraphSize);
+    </script>
+</body>
+</html>

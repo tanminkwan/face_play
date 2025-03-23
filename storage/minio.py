@@ -1,13 +1,9 @@
 from minio import Minio
-import io
 from minio.error import S3Error
-from config import S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY, S3_SECURE
-import cv2
-import numpy as np
-from io import BytesIO
 from datetime import timedelta
 from storage.storage_interface import StorageInterface
 from library.gadget import to_np_image, to_image_bytes
+from minio.deleteobjects import DeleteObject
 
 # Qdrant implementation of the database interface
 class MinIO(StorageInterface):
@@ -64,20 +60,41 @@ class MinIO(StorageInterface):
             print(f"Error occurred: {err}")
             return []
 
-    # load_base_images
-    def load_base_images_list(self):
+    def load_base_images_list(self, bucket, prefixes):
+        """
+        주어진 prefix 리스트에 따라 이미지를 분류하여 로드합니다.
 
-        base_bucket = "base-images"
+        Args:
+            prefixes (list[str]): 파일명 prefix 리스트 예: ["f_", "m_", "mean_f_", "mean_m_"]
 
-        files = self.list_files_in_bucket(base_bucket)
+        Returns:
+            dict[str, list]: prefix별 이미지 리스트 딕셔너리
+        """
+        files = self.list_files_in_bucket(bucket)
 
-        female_base_list = []
-        male_base_list = []
+        result = {prefix: [] for prefix in prefixes}
 
         for file in files:
-            img = self.load_image(base_bucket, file)
-            if file.startswith("f_"):
-                female_base_list.append(img)
-            elif file.startswith("m_"):
-                male_base_list.append(img)
-        return female_base_list, male_base_list
+            img = self.load_image(bucket, file)
+            for prefix in prefixes:
+                if file.startswith(prefix):
+                    result[prefix].append(img)
+                    break  # 하나의 prefix에만 해당된다고 가정
+        return result
+
+    
+    def delete_all_objects_batch(self, bucket, recursive=True):
+        """
+        해당 버킷의 모든 객체를 배치로 삭제합니다. (빠름)
+        """
+        delete_list = [DeleteObject(obj.object_name) for obj in self.client.list_objects(bucket, recursive=recursive)]
+
+        if not delete_list:
+            print("ℹ️ 버킷이 이미 비어 있습니다.")
+            return
+
+        print(f"총 {len(delete_list)} 개 객체 삭제 중...")
+        for del_err in self.client.remove_objects(bucket, delete_list):
+            print(f"❌ 삭제 실패: {del_err}")
+        
+        print("✅ 모든 객체 삭제 완료 (배치 모드)")

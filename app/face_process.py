@@ -2,11 +2,15 @@ import uuid
 import random
 import cv2
 from datetime import datetime
-import numpy as np
 from config import S3_IMAGE_BUCKET, RESERVED_FACES, IS_FACE_RESTORATION_ENABLED
-from app import F_BASE, M_BASE, db, storage, face_detector, face_swapper, face_restorer
+from app import F_BASE, M_BASE, db, storage, face_detector
+from app.common import update_images_by_face
 from library.gadget import load_and_resize_image
 from database.models import FaceEmbeddings
+
+f_color = (255, 0, 255)
+m_color = (0, 255, 0)
+text_color = (235, 145, 45)
 
 def process_image(image, photo_title, photo_id):
     img = load_and_resize_image(image, max_width=1024, max_height=1024)
@@ -20,32 +24,38 @@ def process_image(image, photo_title, photo_id):
 
     face_data_list = []
     for i, face in enumerate(faces): # 얼굴 영역 표시
+
         bbox = face.bbox.astype(int)
-        cv2.rectangle(img, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 255, 0), 2)
-        text_color = (235, 45, 45)
-        cv2.putText(img, f"IDX : {i}", (bbox[0] + 5, bbox[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, text_color, 2)
-        cv2.putText(img, f"Age: {face.age}", (bbox[0] + 5, bbox[1] + 45), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 2)
-        cv2.putText(img, f"Gender: {'M' if face.gender else 'F'}", (bbox[0] + 5, bbox[1] + 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 2)
+        cv2.rectangle(img, (bbox[0], bbox[1]), (bbox[2], bbox[3]), m_color if face.gender else f_color, 2)
+        cv2.putText(img, f"IDX : {i}", (bbox[0] + 5, bbox[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, text_color, 1)
+        cv2.putText(img, f"Age: {face.age}", (bbox[0] + 5, bbox[1] + 45), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 1)
+        cv2.putText(img, f"Gender: {'M' if face.gender else 'F'}", (bbox[0] + 5, bbox[1] + 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 1)
 
         base_image, base_face = random.choice(M_BASE if face.gender else F_BASE)
-        img_face = face_swapper.get(base_image, base_face, face)
-
-        if IS_FACE_RESTORATION_ENABLED:
-            img_face = face_restorer.restore(img_face)
 
         id = str(uuid.uuid4())
-        storage.upload_image(S3_IMAGE_BUCKET, f"{id}.jpg", image=img_face)
 
-        face_data_list.append(FaceEmbeddings(
-            id=id,
-            photo_title=photo_title,
-            photo_id=photo_id,
-            face_index=i,
-            age=float(face.age),
-            gender=int(face.gender),
-            file_name=file_name,
-            embedding=face.embedding.tolist()
-        ))
+        update_images_by_face(
+            S3_IMAGE_BUCKET, 
+            f"{id}.jpg", 
+            base_image, 
+            face, 
+            target_face=base_face,
+            restore=IS_FACE_RESTORATION_ENABLED
+        )
+
+        face_data_list.append(
+            FaceEmbeddings(
+                id=id,
+                photo_title=photo_title,
+                photo_id=photo_id,
+                face_index=i,
+                age=float(face.age),
+                gender=int(face.gender),
+                file_name=file_name,
+                embedding=face.embedding.tolist()
+            )
+        )
 
     storage.upload_image(S3_IMAGE_BUCKET, file_name, image=img)
     db.save_data_batch(face_data_list)
@@ -81,6 +91,7 @@ def get_average_faces():
 
     f_l = f_v.last_processed_at if f_v else 0.0
     m_l = m_v.last_processed_at if m_v else 0.0
+
     last_processed_at = max(f_l, m_l)
 
     timestamp = datetime.fromtimestamp(last_processed_at).strftime('%Y%m%d%H%M%S')
@@ -99,20 +110,16 @@ def get_average_faces():
     return average_faces_info
 
 def view_network_graph(id):
-    me = db.get_data_by_id(id)
 
-    if not me:
+    data = db.search_vectors_by_min_score(id, min_score=0.2, include_self=True, batch_size=50)
+
+    if not data:
         return [], "<p style='color:red;'>No data found for the given ID.</p>"
-
-    data = db.search_vectors_by_min_score(id, min_score=0.2, batch_size=50)
-    data.append(me.copy())
-
+    
     for item in data:
         if item.face_index is not None:
             item.photo_id = f"{item.photo_id}__{item.face_index}"
+        if item.id == id:
+            main_node_id = item.photo_id
 
-    main_photo_id = me.photo_id or "Me"
-    if me.face_index is not None:
-        main_photo_id = f"{main_photo_id}__{me.face_index}"
-
-    return data, main_photo_id
+    return data, main_node_id

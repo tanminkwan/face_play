@@ -83,7 +83,6 @@ class QdrantDatabase(DatabaseInterface):
         for data in data_list:
             metadata = create_metadata(data, created_at=current_time)
 
-            print(f"meta : {metadata}")
             points.append(
                 PointStruct(
                     id=data.id,
@@ -191,6 +190,9 @@ class QdrantDatabase(DatabaseInterface):
         """
         point = self._get_point_by_id(id, with_vectors=True)
 
+        if not point:
+            return []
+        
         query_vector = point.vector
 
         search_result = self.client.search(
@@ -202,7 +204,7 @@ class QdrantDatabase(DatabaseInterface):
         return [get_result(point) for point in search_result]
 
     # Function to search vectors by minimum score threshold
-    def search_vectors_by_min_score(self, id, min_score, batch_size=50) -> List[BaseModel]:
+    def search_vectors_by_min_score(self, id, min_score, include_self=False, batch_size=50) -> List[BaseModel]:
         """
         Search for vectors with a minimum score threshold.
 
@@ -213,6 +215,9 @@ class QdrantDatabase(DatabaseInterface):
         """
         point = self._get_point_by_id(id, with_vectors=True)
 
+        if not point:
+            return []
+        
         query_vector = point.vector
 
         offset = 0
@@ -232,7 +237,7 @@ class QdrantDatabase(DatabaseInterface):
 
             for point in search_result:
 
-                if point.id == id:
+                if point.id == id and not include_self:
                     continue
 
                 if point.score < min_score:

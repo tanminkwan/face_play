@@ -1,13 +1,13 @@
-from scheduler import storage, db, face_detector, face_swapper, face_restorer
+from app import storage, db, face_detector, face_swapper, face_restorer
 from config import S3_IMAGE_BUCKET, RESERVED_FACES
 import numpy as np
+import random
 from datetime import datetime
 from library.gadget import to_ndarray, create_face_from_vector
 from database.models import FaceEmbeddings
+from app.common import update_images_by_face
 
-def update_mean_faces():
-    file_name = "mean_face.jpg"
-    mean_face_img = storage.load_image("base-images", file_name)
+def update_mean_faces(mean_face_imgs, mean_f_face_img, mean_m_face_img):
 
     f_v = db.get_data_by_id(id=RESERVED_FACES[0], with_vectors=True)
     m_v = db.get_data_by_id(id=RESERVED_FACES[1], with_vectors=True)
@@ -21,6 +21,8 @@ def update_mean_faces():
     if not data_to_mean:
         print("No new data to process.")
         return
+    else :
+        print(f"Processing {len(data_to_mean)} new data.")
 
     last_processed_at = data_to_mean[-1].created_at
 
@@ -37,15 +39,10 @@ def update_mean_faces():
             elif item.gender == 1:
                 male_vectors.append(item.embedding)
                 male_age_tot += item.age
-
-    faces = face_detector.get(mean_face_img)
-
-    if not faces:
-        return {"error": "No faces detected in the image. Please upload a valid image with faces."}
-    elif len(faces) < 2:
-        return {"error": "Please upload an image with at least 2 faces."}
-
-    faces = sorted(faces, key=lambda face: face.bbox[0])
+    
+    num_ = random.randint(0, len(mean_face_imgs)-1)
+    print(f"Using {num_}th  mean face image. {len(mean_face_imgs)} images in total.")
+    mean_face_img, faces = mean_face_imgs[num_]
 
     updated_f_v = None
     f_num_people = len(female_vectors)
@@ -70,6 +67,15 @@ def update_mean_faces():
             last_processed_at=last_processed_at,
             embedding=f_vector_mean.tolist()
         )
+
+        update_images_by_face(
+            S3_IMAGE_BUCKET,
+            f"{RESERVED_FACES[0]}.jpg",
+            mean_f_face_img,
+            create_face_from_vector(f_vector_mean),
+            restore=True
+        )
+
     elif f_v:
 
         f_vector_mean = f_v.embedding.copy()
@@ -99,6 +105,14 @@ def update_mean_faces():
             num_people=(m_v.num_people if m_v else 0) + m_num_people,
             last_processed_at=last_processed_at,
             embedding=m_vector_mean.tolist()
+        )
+
+        update_images_by_face(
+            S3_IMAGE_BUCKET,
+            f"{RESERVED_FACES[1]}.jpg",
+            mean_m_face_img,
+            create_face_from_vector(m_vector_mean),
+            restore=True
         )
     elif m_v:
 

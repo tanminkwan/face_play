@@ -1,6 +1,7 @@
 import os
 import glob
 import sys
+import argparse
 from app.face_process import process_image
 
 # Image file extensions to process
@@ -35,8 +36,11 @@ def process_images(target_dir):
     print("\nAll images have been processed successfully.")  # Completion message
 
 if __name__ == "__main__":
-    target_directory = input("Enter the directory path containing images to process: ")
-    if os.path.isdir(target_directory):
-        process_images(target_directory)
+    parser = argparse.ArgumentParser(description="Batch image processor")
+    parser.add_argument("directory", help="Directory path containing images to process")
+    args = parser.parse_args()
+
+    if os.path.isdir(args.directory):
+        process_images(args.directory)
     else:
         print("Invalid directory path.")
