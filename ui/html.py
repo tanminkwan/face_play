@@ -58,14 +58,15 @@ def network_graph_html(data, main_node_id):
             'gender': "Male" if item.gender == 1 else "Female",
             'age': item.age,
             'score': item.score,
+            'face_index': item.face_index,
             'file_url': file_url
         })
 
     for item in data:
-        if item.photo_id != main_node_id:
+        if item.id != main_node_id:
             links.append({
                 'source': main_node_id,
-                'target': item.photo_id,
+                'target': item.id,
                 'score': item.score
             })
 

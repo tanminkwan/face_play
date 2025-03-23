@@ -120,6 +120,6 @@ def view_network_graph(id):
         if item.face_index is not None:
             item.photo_id = f"{item.photo_id}__{item.face_index}"
         if item.id == id:
-            main_node_id = item.photo_id
+            main_node_id = item.id
 
     return data, main_node_id
