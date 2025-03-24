@@ -1,3 +1,8 @@
+from jinja2 import Environment, FileSystemLoader, Template
+import os
+from app import storage
+from config import S3_IMAGE_BUCKET
+
 def average_faces_html(data, url):
     return f"""
     <div style="width: 100%; max-width: 1080px; margin: auto; font-family: sans-serif;">
@@ -26,12 +31,6 @@ def average_faces_html(data, url):
         </div>
     </div>
     """
-
-# ui/html.py에 추가할 코드
-from jinja2 import Environment, FileSystemLoader, Template
-import os
-from app import storage
-from config import S3_IMAGE_BUCKET
 
 def network_graph_html(data, main_node_id):
     """
