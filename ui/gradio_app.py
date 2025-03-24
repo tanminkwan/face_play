@@ -100,7 +100,7 @@ def render_network_graph(id):
 
 logger.info("Starting Gradio app...")
 
-with gr.Blocks(css=css) as demo:
+with gr.Blocks(theme=gr.themes.Monochrome(), css=css) as demo:
 
     selected_id = gr.Textbox(label="Current Face ID", elem_id="selected_id", interactive=False, visible=False)
     original_file_name = gr.Textbox(elem_id="original_file_name", visible=False)
