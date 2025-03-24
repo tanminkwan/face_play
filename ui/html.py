@@ -30,7 +30,7 @@ def average_faces_html(data, url):
     """
 
 # ui/html.py에 추가할 코드
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, Template
 import os
 from app import storage
 from config import S3_IMAGE_BUCKET
@@ -58,7 +58,7 @@ def network_graph_html(data, main_node_id):
             'gender': "Male" if item.gender == 1 else "Female",
             'age': item.age,
             'score': item.score,
-            'face_index': item.face_index,
+            'face_index': item.face_index if item.face_index else 0,
             'file_url': file_url
         })
 
@@ -80,3 +80,50 @@ def network_graph_html(data, main_node_id):
 
     # Render the template with graph data
     return template.render(graph_data=graph_data)
+
+def render_images_table(images):
+    """
+    images: [{face_id, photo_id, photo_title, age, gender, face_index, file_name}, ...]
+    """
+    template_str = """
+<table border="1" style="border-collapse: collapse;">
+    <thead>
+        <tr>
+            <th>Face ID</th>
+            <th>Photo ID</th>
+            <th>Photo Title</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Face Index</th>
+            <!-- File Name 헤더는 숨김 -->
+            <th style="display:none;">File Name</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for row in images %}
+        <tr style="cursor:pointer;" 
+            onclick="(function(){
+                var rows = this.parentNode.querySelectorAll('tr');
+                for(var i=0; i < rows.length; i++){
+                    rows[i].style.backgroundColor = '';
+                }
+                window.rowClick('{{ row['face_id'] }}', '{{ row['file_name'] }}');
+                this.style.setProperty('background-color', 'yellow', 'important');
+            }).call(this);">
+            <td>{{ row['face_id'] }}</td>
+            <td>{{ row['photo_id'] }}</td>
+            <td>{{ row['photo_title'] }}</td>
+            <td>{{ row['age'] }}</td>
+            <td>{{ 'Male' if row['gender'] else 'Female'}}</td>
+            <td>{{ row['face_index'] }}</td>
+            <!-- File Name 칼럼은 숨김 -->
+            <td style="display:none;">{{ row['file_name'] }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+    """
+
+    # jinja2 템플릿 렌더링
+    template = Template(template_str)
+    return template.render(images=images)

@@ -14,6 +14,7 @@ text_color = (235, 145, 45)
 
 def process_image(image, photo_title, photo_id):
     img = load_and_resize_image(image, max_width=1024, max_height=1024)
+    orig_img = img.copy()
     faces = face_detector.get(img)
 
     if not faces:
@@ -26,10 +27,11 @@ def process_image(image, photo_title, photo_id):
     for i, face in enumerate(faces): # 얼굴 영역 표시
 
         bbox = face.bbox.astype(int)
-        cv2.rectangle(img, (bbox[0], bbox[1]), (bbox[2], bbox[3]), m_color if face.gender else f_color, 2)
-        cv2.putText(img, f"IDX : {i}", (bbox[0] + 5, bbox[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, text_color, 1)
-        cv2.putText(img, f"Age: {face.age}", (bbox[0] + 5, bbox[1] + 45), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 1)
-        cv2.putText(img, f"Gender: {'M' if face.gender else 'F'}", (bbox[0] + 5, bbox[1] + 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 1)
+        color = m_color if face.gender else f_color
+        cv2.rectangle(img, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
+        cv2.putText(img, f"IDX : {i}", (bbox[0] + 5, bbox[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+        #cv2.putText(img, f"Age: {face.age}", (bbox[0] + 5, bbox[1] + 45), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 1)
+        #cv2.putText(img, f"Gender: {'M' if face.gender else 'F'}", (bbox[0] + 5, bbox[1] + 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 1)
 
         base_image, base_face = random.choice(M_BASE if face.gender else F_BASE)
 
