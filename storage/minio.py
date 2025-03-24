@@ -42,7 +42,6 @@ class MinIO(StorageInterface):
     def get_file_url(self, bucket, file_name):
         url = self.client.presigned_get_object(bucket, file_name, 
                                         expires=timedelta(days=1))
-        print(url)
         return url
 
     # Load base images from MinIO(or S3)

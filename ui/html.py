@@ -48,7 +48,7 @@ def network_graph_html(data, main_node_id):
     for item in data:
         file_name = f"{item.id}.jpg"
         file_url = storage.get_file_url(S3_IMAGE_BUCKET, file_name)
-        print(file_url)
+        
         nodes.append({
             'id': item.id,
             'photo_id': item.photo_id,

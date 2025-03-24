@@ -5,14 +5,14 @@ from app import storage, face_detector
 from app.jobs import update_mean_faces
 
 logging.basicConfig(level=logging.INFO)
-
+logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
 
     print("Starting scheduler...")
 
     images = storage.load_base_images_list("base-images", ["mean_face"])
-    print(f"Loaded {len(images['mean_face'])} mean face images.")
+    logger.info(f"Loaded {len(images['mean_face'])} mean face images.")
     
     mean_face_imgs = []
     for f in images["mean_face"]:
@@ -20,10 +20,10 @@ if __name__ == '__main__':
         faces = face_detector.get(f)
 
         if not faces:
-            print("No faces detected in the image. Please upload a valid image with faces.")
+            logger.info("No faces detected in the image. Please upload a valid image with faces.")
             exit 
         elif len(faces) < 2:
-            print("Please upload an image with at least 2 faces.")
+            logger.info("Please upload an image with at least 2 faces.")
             exit
 
         faces = sorted(faces, key=lambda face: face.bbox[0])
@@ -45,7 +45,7 @@ if __name__ == '__main__':
         )
     scheduler.start()
 
-    print("Scheduler started. Press Ctrl+C to exit.")
+    logger.info("Scheduler started. Press Ctrl+C to exit.")
 
     try:
         # 메인 스레드를 계속 실행시켜 백그라운드 작업이 계속 동작하도록 함
@@ -53,4 +53,4 @@ if __name__ == '__main__':
             time.sleep(1)
     except KeyboardInterrupt:
         scheduler.shutdown()
-        print("Scheduler stopped.")
+        logger.info("Scheduler stopped.")
