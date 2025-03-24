@@ -2,7 +2,7 @@ import logging
 import gradio as gr
 import pandas as pd
 from app.face_process import process_image, get_image_list, get_average_faces, \
-    view_network_graph, get_image_url
+    get_image_url
 from ui.html import average_faces_html, render_images_table
 from ui.css import css
 from ui.js import js_to_network_graph_tab, js_send_faceid_to_selectedid
