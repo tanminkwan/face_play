@@ -1,6 +1,11 @@
 css=\
 """
 /* 전체 app에서 이미지와 컨테이너가 화면을 초과하지 않게 함 */
+.network-graph-html {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 .gradio-container {
     max-width: 100% !important;
     overflow-x: hidden !important;

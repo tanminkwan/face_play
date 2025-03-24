@@ -7,9 +7,10 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body {
-            margin: 0;
+            margin: 5px 0 0 0; /* 상단 여백 20px */
             font-family: Arial;
             overflow-x: hidden;
+            background-color: #fafafa; /* 밝은 배경색 */
         }
         #graph-container {
             width: 100%;
@@ -91,7 +92,6 @@
         .info-value {
             margin-bottom: 8px;
         }
-
         /* 팝업 모달 관련 */
         .popup-modal {
             display: none;
@@ -161,8 +161,12 @@
                  src="{{ node.file_url }}"
                  alt="{{ node.name }}"
                  title="{{ node.name }}"
-                 data-id="{{ node.photo_id }}"
                  data-faceid="{{ node.id }}"
+                 data-id="{{ node.photo_id }}"
+                 data-name="{{ node.name }}"
+                 data-gender="{{ node.gender }}"
+                 data-age="{{ node.age }}"
+                 data-score="{{ node.score }}"
                  data-url="{{ node.file_url }}">
         </div>
         {% endfor %}
@@ -301,8 +305,7 @@
         .attr('class', 'label')
         .attr('dy', 4)
         .attr('x', 20)
-        .text(d => d.photo_id); 
-        // 혹은 d => d.id 로 변경하면 id가 표시됨
+        .text(d => d.photo_id);
 
     // 시뮬레이션 tick마다 위치 업데이트
     simulation.on('tick', function() {
@@ -331,12 +334,28 @@
             caption.innerHTML = `
             <table style="margin: 0 auto; border-collapse: separate; border-spacing: 20px;">
                 <tr>
+                    <th style="text-align: left;">Face ID</th>
+                    <td style="text-align: left;">${this.dataset.faceid}</td>
+                </tr>
+                <tr>
                     <th style="text-align: left;">Photo ID</th>
                     <td style="text-align: left;">${this.dataset.id}</td>
                 </tr>
                 <tr>
-                    <th style="text-align: left;">Face ID</th>
-                    <td style="text-align: left;">${this.dataset.faceid}</td>
+                    <th style="text-align: left;">Name</th>
+                    <td style="text-align: left;">${this.dataset.name}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Gender</th>
+                    <td style="text-align: left;">${this.dataset.gender}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Age</th>
+                    <td style="text-align: left;">${this.dataset.age}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Score</th>
+                    <td style="text-align: left;">${this.dataset.score}</td>
                 </tr>
             </table>
             `;

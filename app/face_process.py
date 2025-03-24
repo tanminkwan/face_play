@@ -14,7 +14,6 @@ text_color = (235, 145, 45)
 
 def process_image(image, photo_title, photo_id):
     img = load_and_resize_image(image, max_width=1024, max_height=1024)
-    orig_img = img.copy()
     faces = face_detector.get(img)
 
     if not faces:
@@ -29,9 +28,7 @@ def process_image(image, photo_title, photo_id):
         bbox = face.bbox.astype(int)
         color = m_color if face.gender else f_color
         cv2.rectangle(img, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
-        cv2.putText(img, f"IDX : {i}", (bbox[0] + 5, bbox[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
-        #cv2.putText(img, f"Age: {face.age}", (bbox[0] + 5, bbox[1] + 45), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 1)
-        #cv2.putText(img, f"Gender: {'M' if face.gender else 'F'}", (bbox[0] + 5, bbox[1] + 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 1)
+        cv2.putText(img, f" {i}", (bbox[0] + 5, bbox[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
         base_image, base_face = random.choice(M_BASE if face.gender else F_BASE)
 
@@ -62,7 +59,7 @@ def process_image(image, photo_title, photo_id):
     storage.upload_image(S3_IMAGE_BUCKET, file_name, image=img)
     db.save_data_batch(face_data_list)
 
-    return {"bucket": S3_IMAGE_BUCKET, "file_name": file_name}
+    return file_name
 
 def get_image_list(photo_id=None, photo_title=None):
     results = db.get_data(filters=dict(photo_id=photo_id, photo_title=photo_title))
@@ -79,6 +76,9 @@ def get_image_list(photo_id=None, photo_title=None):
         for item in results
     ]
     return images
+
+def get_image_url(file_name):
+    return storage.get_file_url(S3_IMAGE_BUCKET, file_name)
 
 def get_average_faces():
 
@@ -101,7 +101,6 @@ def get_average_faces():
     file_name = f"mean_face.{timestamp}.jpg"
 
     average_faces_info = {
-        "bucket": S3_IMAGE_BUCKET, 
         "file_name": file_name, 
         "f_age":f_age, 
         "m_age":m_age, 

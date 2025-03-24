@@ -6,7 +6,6 @@ def average_faces_html(data, url):
             <!-- 여성 정보 div -->
             <div 
                 style="flex: 1; padding: 10px; text-align: center; border: 1px solid #ddd; margin-right: 5px; border-radius: 8px; cursor: pointer;"
-                onclick="window.open('/network-graph/00000000-0000-0000-0000-000000000000', '_blank');"
             >
                 <h3>여성 정보</h3>
                 <p><strong>참여자 수:</strong> {data['f_num_people']}</p>
@@ -16,7 +15,6 @@ def average_faces_html(data, url):
             <!-- 남성 정보 div -->
             <div 
                 style="flex: 1; padding: 10px; text-align: center; border: 1px solid #ddd; margin-left: 5px; border-radius: 8px; cursor: pointer;"
-                onclick="window.open('/network-graph/11111111-1111-1111-1111-111111111111', '_blank');"
             >
                 <h3>남성 정보</h3>
                 <p><strong>참여자 수:</strong> {data['m_num_people']}</p>
@@ -108,7 +106,7 @@ def render_images_table(images):
                     rows[i].style.backgroundColor = '';
                 }
                 window.rowClick('{{ row['face_id'] }}', '{{ row['file_name'] }}');
-                this.style.setProperty('background-color', 'yellow', 'important');
+                this.style.setProperty('background-color', '#808080', 'important');
             }).call(this);">
             <td>{{ row['face_id'] }}</td>
             <td>{{ row['photo_id'] }}</td>

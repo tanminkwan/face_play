@@ -7,7 +7,7 @@ from ui.gradio_app import demo  # Gradio 앱 UI
 app = FastAPI()
 
 # static 폴더를 정적으로 서빙
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 라우터 등록
 app.include_router(app_router) 
