@@ -174,7 +174,6 @@ class QdrantDatabase(DatabaseInterface):
             )
 
         if not point:
-            print(f"No data found for ID: {id}")
             return None
         
         return point[0]

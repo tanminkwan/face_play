@@ -1,4 +1,5 @@
 import logging
+import re
 import gradio as gr
 import pandas as pd
 from app.face_process import process_image, get_image_list, get_average_faces, \
@@ -12,13 +13,30 @@ logger = logging.getLogger(__name__)
 
 def upload_image(image, photo_title, photo_id):
     
+    if not image:
+        return "<p style='color:red;'>Please upload an image before proceeding.</p>"
+
+    if not photo_id or not photo_title:
+        return "<p style='color:red;'>Please enter both Photo ID and Photo Title.</p>"
+
+    # photo_id는 영문, 숫자, 밑줄, 하이픈만 허용
+    if not re.match(r'^[A-Za-z0-9_-]+$', photo_id):
+        return "<p style='color:red;'>Photo ID must contain only letters, numbers, hyphens (-), or underscores (_).</p>"
+
     logger.info("Uploading image...")
     file_name = process_image(image, photo_title, photo_id)
+
+    if not file_name:
+        return f"<p style='color:red;'>No faces detected in the image</p>"
+    
     url = get_image_url(file_name)
 
     return f"<img src='{url}' style='max-width: 1080px; height: auto;'/>"
 
 def list_images(photo_id=None, photo_title=None):
+
+    if not photo_id and not photo_title:
+        return "<p style='color:red;'>Please enter either Photo ID or Photo Title.</p>"
 
     logger.info(f"Fetching image list for photo_title: {photo_title}, photo_id: {photo_id}")
     images = get_image_list(photo_id, photo_title)
@@ -58,7 +76,7 @@ def view_average_faces():
 
 def render_network_graph_iframe(id):
     if not id:
-        return "<p style='color:red;'>유효한 ID를 입력해주세요.</p>"
+        return "<p style='color:red;'>Please enter a valid Face ID.</p>"
     # face_id를 사용해 해당 네트워크 그래프 페이지 URL 구성
     url = f"/network-graph/{id}"
     # iframe을 사용하여 페이지 로드. 스타일은 상황에 맞게 조정하세요.
@@ -66,7 +84,7 @@ def render_network_graph_iframe(id):
 
 logger.info("Starting Gradio app...")
 
-with gr.Blocks(theme=gr.themes.Monochrome(), css=css) as demo:
+with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue", neutral_hue="slate", secondary_hue="green", text_size=gr.themes.sizes.text_lg), css=css) as demo:
 
     selected_id = gr.Textbox(label="Current Face ID", elem_id="selected_id", interactive=False, visible=False)
     original_file_name = gr.Textbox(elem_id="original_file_name", visible=False)

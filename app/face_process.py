@@ -1,5 +1,6 @@
 import uuid
 import random
+import logging
 import cv2
 from datetime import datetime
 from config import S3_IMAGE_BUCKET, RESERVED_FACES, IS_FACE_RESTORATION_ENABLED
@@ -7,6 +8,9 @@ from app import F_BASE, M_BASE, db, storage, face_detector
 from app.common import update_images_by_face
 from library.gadget import load_and_resize_image
 from database.models import FaceEmbeddings
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 f_color = (255, 0, 255)
 m_color = (0, 255, 0)
@@ -17,7 +21,8 @@ def process_image(image, photo_title, photo_id):
     faces = face_detector.get(img)
 
     if not faces:
-        return {"error": "No faces detected in the image. Please upload a valid image with faces."}
+        logger.error(f"No faces detected in the image. Please upload a valid image with faces. file_name : {image}.")
+        return None
 
     faces = sorted(faces, key=lambda face: face.bbox[0])
     file_name = f"{str(uuid.uuid4())}.jpg"

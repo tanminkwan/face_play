@@ -1,3 +1,4 @@
+import logging
 from minio import Minio
 from minio.error import S3Error
 from datetime import timedelta
@@ -56,7 +57,7 @@ class MinIO(StorageInterface):
             file_list = [obj.object_name for obj in objects]
             return file_list
         except S3Error as err:
-            print(f"Error occurred: {err}")
+            logging.error(f"Error occurred: {err}")
             return []
 
     def load_base_images_list(self, bucket, prefixes):
@@ -81,19 +82,18 @@ class MinIO(StorageInterface):
                     break  # 하나의 prefix에만 해당된다고 가정
         return result
 
-    
     def delete_all_objects_batch(self, bucket, recursive=True):
         """
-        해당 버킷의 모든 객체를 배치로 삭제합니다. (빠름)
+        Deletes all objects in the specified bucket in batch mode. (Fast)
         """
         delete_list = [DeleteObject(obj.object_name) for obj in self.client.list_objects(bucket, recursive=recursive)]
 
         if not delete_list:
-            print("ℹ️ 버킷이 이미 비어 있습니다.")
+            logging.info("ℹ️ The bucket is already empty.")
             return
 
-        print(f"총 {len(delete_list)} 개 객체 삭제 중...")
+        logging.info(f"Deleting {len(delete_list)} objects...")
         for del_err in self.client.remove_objects(bucket, delete_list):
-            print(f"❌ 삭제 실패: {del_err}")
+            logging.info(f"❌ Failed to delete: {del_err}")
         
-        print("✅ 모든 객체 삭제 완료 (배치 모드)")
+        logging.info("✅ All objects deleted successfully (batch mode).")

@@ -87,11 +87,11 @@ def render_images_table(images):
     <thead>
         <tr>
             <th>Face ID</th>
-            <th>Photo ID</th>
+            <th>Photo ID(+__index)</th>
             <th>Photo Title</th>
             <th>Age</th>
             <th>Gender</th>
-            <th>Face Index</th>
+            <th style="display:none;">Face Index</th>
             <!-- File Name 헤더는 숨김 -->
             <th style="display:none;">File Name</th>
         </tr>
@@ -108,11 +108,11 @@ def render_images_table(images):
                 this.style.setProperty('background-color', '#808080', 'important');
             }).call(this);">
             <td>{{ row['face_id'] }}</td>
-            <td>{{ row['photo_id'] }}</td>
+            <td>{{ row['photo_id'] }}__{{ row['face_index'] }}</td>
             <td>{{ row['photo_title'] }}</td>
             <td>{{ row['age'] }}</td>
             <td>{{ 'Male' if row['gender'] else 'Female'}}</td>
-            <td>{{ row['face_index'] }}</td>
+            <td style="display:none;">{{ row['face_index'] }}</td>
             <!-- File Name 칼럼은 숨김 -->
             <td style="display:none;">{{ row['file_name'] }}</td>
         </tr>
