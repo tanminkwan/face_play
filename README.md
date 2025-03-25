@@ -170,6 +170,16 @@ Downloading: "https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/pars
 
 100%|████████████████████████████████████████████████████████████████████| 81.4M/81.4M [00:01<00:00, 60.3MB/s]
 ```
+- docker build 이전 config.py 변경
+```yaml
+# AI Model configuration
+#BUFFALO_L_PATH = "C:\\"
+#INSWAPPER_PATH = "C:\\models\\inswapper_128.onnx"
+#CODEFORMER_MODEL = "C:\\models\\codeformer-v0.1.0.pth"
+BUFFALO_L_PATH = "/"
+INSWAPPER_PATH = "/models/inswapper_128.onnx"
+CODEFORMER_MODEL = "/models/codeformer.pth"
+```
 ###
 - 대량 얼굴 data
 - https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
