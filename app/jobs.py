@@ -3,7 +3,7 @@ import random
 import logging
 from app import storage, db, face_detector, face_swapper, face_restorer
 from config import S3_IMAGE_BUCKET, RESERVED_FACES
-from datetime import datetime
+from datetime import datetime, timezone
 from library.gadget import create_face_from_vector, update_mean_vector
 from database.models import FaceEmbeddings
 from app.common import update_images_by_face
@@ -124,7 +124,9 @@ def update_mean_faces(mean_face_imgs, mean_f_face_img, mean_m_face_img):
 
     img_face = face_restorer.restore(mean_face_img)
 
-    timestamp = datetime.fromtimestamp(last_processed_at).strftime('%Y%m%d%H%M%S')
+    timestamp = datetime.fromtimestamp(last_processed_at, tz=timezone.utc)\
+        .strftime('%Y%m%d%H%M%S')
+
     new_filename = f"mean_face.{timestamp}.jpg"
 
     storage.upload_image(S3_IMAGE_BUCKET, new_filename, image=img_face)

@@ -2,7 +2,7 @@ import uuid
 import random
 import logging
 import cv2
-from datetime import datetime
+from datetime import datetime, timezone
 from config import S3_IMAGE_BUCKET, RESERVED_FACES, IS_FACE_RESTORATION_ENABLED, MIN_FACE_DETECTION_SCORE
 from app import F_BASE, M_BASE, db, storage, face_detector
 from app.common import update_images_by_face
@@ -112,7 +112,8 @@ def get_average_faces():
 
     last_processed_at = max(f_l, m_l)
 
-    timestamp = datetime.fromtimestamp(last_processed_at).strftime('%Y%m%d%H%M%S')
+    timestamp = datetime.fromtimestamp(last_processed_at, tz=timezone.utc)\
+        .strftime('%Y%m%d%H%M%S')
 
     file_name = f"mean_face.{timestamp}.jpg"
 
