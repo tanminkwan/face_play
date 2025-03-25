@@ -1,125 +1,126 @@
-from app import storage, db, face_detector, face_swapper, face_restorer
-from config import S3_IMAGE_BUCKET, RESERVED_FACES
 import numpy as np
 import random
+import logging
+from app import storage, db, face_detector, face_swapper, face_restorer
+from config import S3_IMAGE_BUCKET, RESERVED_FACES
 from datetime import datetime
-from library.gadget import to_ndarray, create_face_from_vector
+from library.gadget import create_face_from_vector, update_mean_vector
 from database.models import FaceEmbeddings
 from app.common import update_images_by_face
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 def update_mean_faces(mean_face_imgs, mean_f_face_img, mean_m_face_img):
 
-    f_v = db.get_data_by_id(id=RESERVED_FACES[0], with_vectors=True)
-    m_v = db.get_data_by_id(id=RESERVED_FACES[1], with_vectors=True)
+    MEAN_FEMALE_FACE_ID = RESERVED_FACES[0]
+    MEAN_MAIL_FACE_ID = RESERVED_FACES[1]
 
-    f_l = f_v.last_processed_at if f_v else 0.0
-    m_l = m_v.last_processed_at if m_v else 0.0
+    f_v = db.get_data_by_id(id=MEAN_FEMALE_FACE_ID, with_vectors=True)
+    m_v = db.get_data_by_id(id=MEAN_MAIL_FACE_ID, with_vectors=True)
 
-    last_processed_at = max(f_l, m_l)
-    data_to_mean = db.get_data_after_date(last_processed_at, with_vectors=True)
+    f_l, f_age, f_embedding, f_num_people = \
+        (f_v.last_processed_at, f_v.age, f_v.embedding, f_v.num_people) \
+        if f_v else (0.0, 0, None, 0)
+    m_l, m_age, m_embedding, m_num_people = \
+        (m_v.last_processed_at, m_v.age, m_v.embedding, m_v.num_people) \
+        if m_v else (0.0, 0, None, 0)
+
+    max_l = max(f_l, m_l)
+    data_to_mean = db.get_data_after_date(max_l, with_vectors=True)
 
     if not data_to_mean:
-        print("No new data to process.")
+        logger.info("No new data to process.")
         return
     else :
-        print(f"Processing {len(data_to_mean)} new data.")
+        logger.info(f"Processing {len(data_to_mean)} new data.")
 
     last_processed_at = data_to_mean[-1].created_at
 
-    female_vectors = []
-    male_vectors = []
-    female_age_tot = 0
-    male_age_tot = 0
+    new_f_embedding = []
+    new_m_embedding = []
+    new_f_ages = []
+    new_m_ages = []
 
     for item in data_to_mean:
         if item.embedding is not None:
             if item.gender == 0:
-                female_vectors.append(item.embedding)
-                female_age_tot += item.age
+                new_f_embedding.append(item.embedding)
+                new_f_ages.append(item.age)
             elif item.gender == 1:
-                male_vectors.append(item.embedding)
-                male_age_tot += item.age
+                new_m_embedding.append(item.embedding)
+                new_m_ages.append(item.age)
     
     num_ = random.randint(0, len(mean_face_imgs)-1)
-    print(f"Using {num_}th  mean face image. {len(mean_face_imgs)} images in total.")
-    mean_face_img, faces = mean_face_imgs[num_]
+    logger.info(f"Using {num_}th  mean face image. {len(mean_face_imgs)} images in total.")
+    mean_face_img, mean_faces = mean_face_imgs[num_]
 
-    updated_f_v = None
-    f_num_people = len(female_vectors)
+    updated_female_v = None
+    new_f_num_people = len(new_f_embedding)
 
-    if f_num_people > 0:
-        f_vector_mean = np.mean(female_vectors, axis=0)
-        f_age_mean = female_age_tot / f_num_people
+    if new_f_num_people > 0:
 
-        if f_v:
-            weight_a = f_v.num_people / (f_v.num_people + f_num_people)
-            weight_b = f_num_people / (f_v.num_people + f_num_people)
-            f_vector_mean = (to_ndarray(f_v.embedding) * weight_a) + (f_vector_mean * weight_b)
-            f_age_mean = (f_v.age * weight_a) + (f_age_mean * weight_b)
+        new_f_embedding_mean = update_mean_vector(f_embedding, f_num_people, new_f_embedding)
+        new_f_age_mean = float(update_mean_vector(f_age, f_num_people, new_f_ages))
 
-        updated_f_v = FaceEmbeddings(
-            id=RESERVED_FACES[0],
-            age=f_age_mean,
+        updated_female_v = FaceEmbeddings(
+            id=MEAN_FEMALE_FACE_ID,
+            age=new_f_age_mean,
             gender=0,
             photo_title="Average Female Face",
             photo_id="average_female_face",
-            num_people=(f_v.num_people if f_v else 0) + f_num_people,
+            num_people=f_num_people + new_f_num_people,
             last_processed_at=last_processed_at,
-            embedding=f_vector_mean.tolist()
+            embedding=new_f_embedding_mean.tolist()
         )
 
         update_images_by_face(
             S3_IMAGE_BUCKET,
-            f"{RESERVED_FACES[0]}.jpg",
+            f"{MEAN_FEMALE_FACE_ID}.jpg",
             mean_f_face_img,
-            create_face_from_vector(f_vector_mean),
+            create_face_from_vector(new_f_embedding_mean),
             restore=True
         )
 
     elif f_v:
 
-        f_vector_mean = f_v.embedding.copy()
+        new_f_embedding_mean = f_embedding.copy()
 
-    if f_num_people > 0 or f_v:
-        mean_face_img = face_swapper.get(mean_face_img, faces[0], create_face_from_vector(f_vector_mean))
+    if new_f_num_people > 0 or f_v:
+        mean_face_img = face_swapper.get(mean_face_img, mean_faces[0], create_face_from_vector(new_f_embedding_mean))
 
-    updated_m_v = None
-    m_num_people = len(male_vectors)
+    updated_male_v = None
+    new_m_num_people = len(new_m_embedding)
 
-    if m_num_people > 0:
-        m_vector_mean = np.mean(male_vectors, axis=0)
-        m_age_mean = male_age_tot / m_num_people
+    if new_m_num_people > 0:
 
-        if m_v:
-            weight_a = m_v.num_people / (m_v.num_people + m_num_people)
-            weight_b = m_num_people / (m_v.num_people + m_num_people)
-            m_vector_mean = (to_ndarray(m_v.embedding) * weight_a) + (m_vector_mean * weight_b)
-            m_age_mean = (m_v.age * weight_a) + (m_age_mean * weight_b)
+        new_m_embedding_mean = update_mean_vector(m_embedding, m_num_people, new_m_embedding)
+        new_m_age_mean = float(update_mean_vector(m_age, m_num_people, new_m_ages))
 
-        updated_m_v = FaceEmbeddings(
-            id=RESERVED_FACES[1],
-            age=m_age_mean,
+        updated_male_v = FaceEmbeddings(
+            id=MEAN_MAIL_FACE_ID,
+            age=new_m_age_mean,
             gender=1,
             photo_title="Average Male Face",
             photo_id="average_male_face",
-            num_people=(m_v.num_people if m_v else 0) + m_num_people,
+            num_people=m_num_people + new_m_num_people,
             last_processed_at=last_processed_at,
-            embedding=m_vector_mean.tolist()
+            embedding=new_m_embedding_mean.tolist()
         )
 
         update_images_by_face(
             S3_IMAGE_BUCKET,
-            f"{RESERVED_FACES[1]}.jpg",
+            f"{MEAN_MAIL_FACE_ID}.jpg",
             mean_m_face_img,
-            create_face_from_vector(m_vector_mean),
+            create_face_from_vector(new_m_embedding_mean),
             restore=True
         )
     elif m_v:
 
-        m_vector_mean = m_v.embedding.copy()
+        new_m_embedding_mean = m_v.embedding.copy()
 
-    if m_num_people > 0 or m_v:
-        mean_face_img = face_swapper.get(mean_face_img, faces[1], create_face_from_vector(m_vector_mean))
+    if new_m_num_people > 0 or m_v:
+        mean_face_img = face_swapper.get(mean_face_img, mean_faces[1], create_face_from_vector(new_m_embedding_mean))
 
     img_face = face_restorer.restore(mean_face_img)
 
@@ -128,8 +129,8 @@ def update_mean_faces(mean_face_imgs, mean_f_face_img, mean_m_face_img):
 
     storage.upload_image(S3_IMAGE_BUCKET, new_filename, image=img_face)
 
-    if updated_f_v:
-        db.save_data(updated_f_v)
+    if updated_female_v:
+        db.save_data(updated_female_v)
 
-    if updated_m_v:
-        db.save_data(updated_m_v)
+    if updated_male_v:
+        db.save_data(updated_male_v)

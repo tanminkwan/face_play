@@ -1,18 +1,54 @@
 from insightface.app.common import Face
 import numpy as np
+import numpy.typing as npt
+from typing import Union, Optional, List
 import cv2
 from io import BytesIO
 from functools import wraps
 
-def to_ndarray(vector):
-    # 벡터를 numpy 배열로 변환
-    return np.array(vector, dtype=np.float32)
+def update_mean_vector(
+        mean_vector: Optional[Union[float, List[float], npt.NDArray[np.float32]]], 
+        mean_weight: Union[int, float], 
+        new_vectors: Union[List[List[float]], npt.NDArray[np.float32]],
+        )->npt.NDArray[np.float32]:
+    """
+    기존 평균 벡터와 새 벡터들의 평균을 가중치로 업데이트합니다.
+
+    Parameters:
+        mean_vector (array-like): 기존 평균 벡터.
+        mean_weight (int): 평균의 샘플값.
+        new_vectors (array-like): 새 벡터 목록.
+
+    Returns:
+        numpy.ndarray: 업데이트된 평균 벡터.
+    """
+    if not new_vectors:
+        return mean_vector
+
+    new_vectors = np.asarray(new_vectors, dtype=np.float32)
+    new_mean_vector = np.mean(new_vectors, axis=0)
+    new_weight = len(new_vectors)
+
+    if not mean_vector:
+        return new_mean_vector
+
+    mean_vector = np.asarray(mean_vector, dtype=np.float32)
+
+    if mean_vector.size == 0:
+        return new_mean_vector
+
+    norm_mean_weight = mean_weight / (mean_weight + new_weight)
+    norm_new_weight = new_weight / (mean_weight + new_weight)
+
+    new_mean_vector = (mean_vector * norm_mean_weight) + (new_mean_vector * norm_new_weight)
+
+    return new_mean_vector
 
 def create_face_from_vector(vector):
     # Face 객체 생성
     face = Face()
     # 벡터를 float32로 변환 후 Face 객체의 embedding 속성에 할당
-    face.embedding = to_ndarray(vector)
+    face.embedding = np.asarray(vector, dtype=np.float32)
     return face
 
 def to_np_image(func):

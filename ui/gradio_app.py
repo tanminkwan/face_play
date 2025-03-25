@@ -152,8 +152,7 @@ with gr.Blocks(theme=gr.themes.Monochrome(), css=css) as demo:
 
         network_output = gr.HTML(label="Network Graph", elem_classes="network-graph-html")
         progress_html = gr.HTML(label="Drawing Network Graph", elem_id="out_html")
-        # (중요) data_table, network_output을 탭 내에서 새로 만들지 않고,
-        #       이미 정의해둔 컴포넌트(data_table, network_output)를 "표시"만.
+        
         view_button.click(
             fn=render_network_graph_iframe,
             inputs=input_id,
