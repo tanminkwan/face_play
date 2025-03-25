@@ -62,7 +62,7 @@ def render_network_graph_iframe(id):
     # face_id를 사용해 해당 네트워크 그래프 페이지 URL 구성
     url = f"/network-graph/{id}"
     # iframe을 사용하여 페이지 로드. 스타일은 상황에 맞게 조정하세요.
-    return f"<iframe src='{url}' style='width:100%; height:1000px; border:none;'></iframe>", ""
+    return f"<iframe src='{url}' style='width:100%; height:1000px; border:none;'></iframe>"
 
 logger.info("Starting Gradio app...")
 
@@ -151,18 +151,17 @@ with gr.Blocks(theme=gr.themes.Monochrome(), css=css) as demo:
             view_button = gr.Button("View")
 
         network_output = gr.HTML(label="Network Graph", elem_classes="network-graph-html")
-        progress_html = gr.HTML(label="Drawing Network Graph", elem_id="out_html")
         
         view_button.click(
             fn=render_network_graph_iframe,
             inputs=input_id,
-            outputs=[network_output, progress_html]
+            outputs=[network_output]
         )
 
     go_network_button.click(
         fn=render_network_graph_iframe,
         inputs=selected_id,                 # pass the hidden text ID
-        outputs=[network_output, progress_html],
+        outputs=[network_output],
     ).then(
         fn=None,
         inputs=None,
@@ -173,7 +172,7 @@ with gr.Blocks(theme=gr.themes.Monochrome(), css=css) as demo:
     female_average_button.click(
         fn=render_network_graph_iframe,
         inputs=const_f_face_id,
-        outputs=[network_output, average_output],
+        outputs=[network_output],
     ).then(
         fn=None,
         inputs=None,
@@ -184,7 +183,7 @@ with gr.Blocks(theme=gr.themes.Monochrome(), css=css) as demo:
     male_average_button.click(
         fn=render_network_graph_iframe,
         inputs=const_m_face_id,
-        outputs=[network_output, average_output],
+        outputs=[network_output],
     ).then(
         fn=None,
         inputs=None,

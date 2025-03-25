@@ -1,7 +1,7 @@
 from insightface.app.common import Face
 import numpy as np
 import numpy.typing as npt
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Tuple
 import cv2
 from io import BytesIO
 from functools import wraps
@@ -50,6 +50,37 @@ def create_face_from_vector(vector):
     # 벡터를 float32로 변환 후 Face 객체의 embedding 속성에 할당
     face.embedding = np.asarray(vector, dtype=np.float32)
     return face
+
+# 얼굴 랜드마크 그리기
+def draw_landmarks_on_image(input_image: np.ndarray, face: Face, color=(0, 255, 0)) -> np.ndarray:
+
+    # 각 랜드마크 좌표에 원 그리기
+    landmarks = face.landmark_2d_106
+    # Draw each landmark point
+    for i in range(landmarks.shape[0]):
+        point = landmarks[i]
+        x, y = int(point[0]), int(point[1])
+        cv2.circle(input_image, (x, y), 1, color, -1)  # Green color, filled circle
+
+# 얼굴 박스 그리기
+def draw_bbox_on_image(
+        input_image: np.ndarray, 
+        face: Face, 
+        color:Tuple[int, int, int]=(0, 255, 0)
+        ) -> np.ndarray:
+    # 얼굴 영역 표시
+    bbox = face.bbox.astype(int)
+    cv2.rectangle(input_image, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
+
+# 이미지에 글씨 쓰기
+def draw_text_on_image(
+        input_image: np.ndarray, 
+        coordinate_pair: Tuple[int, int],
+        font_size: float=0.6,
+        color:Tuple[int, int, int]=(0, 255, 0)        
+        ) -> np.ndarray:
+    # 얼굴 영역 표시
+    cv2.putText(input_image, f"{i}", coordinate_pair, cv2.FONT_HERSHEY_SIMPLEX, font_size, color, 2)
 
 def to_np_image(func):
     """
