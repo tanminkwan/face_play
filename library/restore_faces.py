@@ -113,4 +113,4 @@ if __name__ == "__main__":
     # 여러 이미지 처리
     img1 = cv2.imread("E:\\faces_pjt\\swapped_image.jpg")
     restored_img1 = restorer.restore(img1)
-    cv2.imwrite('E:\\faces_pjt\\restored_image.jpg', restored_img1)
+    cv2.imwrite('E:\\faces_pjt\\mean2.jpg', restored_img1)
