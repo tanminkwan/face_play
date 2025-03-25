@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app /face-play/app
 COPY database /face-play/database
 COPY library /face-play/library
-COPY static /face-play/static
+RUN mkdir -p /face-play/static
 COPY storage /face-play/storage
 COPY ui /face-play/ui
 COPY config.py_4Docker config.py
