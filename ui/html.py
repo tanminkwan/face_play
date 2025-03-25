@@ -4,33 +4,30 @@ from app import storage
 from config import S3_IMAGE_BUCKET
 
 def average_faces_html(data, url):
-    return f"""
-    <div style="width: 100%; max-width: 1080px; margin: auto; font-family: sans-serif;">
-        <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 20px;">
-
-            <!-- 여성 정보 div -->
-            <div 
-                style="flex: 1; padding: 10px; text-align: center; border: 1px solid #ddd; margin-right: 5px; border-radius: 8px; cursor: pointer;"
-            >
-                <h3>여성 정보</h3>
-                <p><strong>참여자 수:</strong> {data['f_num_people']}</p>
-                <p><strong>평균 나이:</strong> {data['f_age']:.2f}</p>
+    template_str = """
+    <div style="width: 100%; max-width: 1080px; margin: auto; font-family: sans-serif; position: relative;">
+        <img src="{{ url }}" style="width:100%; height:auto; max-width: 1080px; border-radius: 8px;"/>
+        <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0, 0, 0, 0.5); color: #fff; padding: 10px; border-radius: 0 0 8px 8px;">
+            <div style="display: flex; justify-content: space-between;">
+                <!-- 여성 정보 div -->
+                <div style="flex: 1; text-align: center;">
+                    <h3 style="margin: 0;">여성 정보</h3>
+                    <p style="margin: 0;"><strong>참여자 수:</strong> {{ data['f_num_people'] }}</p>
+                    <p style="margin: 0;"><strong>평균 나이:</strong> {{ data['f_age']|round(2) }}</p>
+                </div>
+                <!-- 남성 정보 div -->
+                <div style="flex: 1; text-align: center;">
+                    <h3 style="margin: 0;">남성 정보</h3>
+                    <p style="margin: 0;"><strong>참여자 수:</strong> {{ data['m_num_people'] }}</p>
+                    <p style="margin: 0;"><strong>평균 나이:</strong> {{ data['m_age']|round(2) }}</p>
+                </div>
             </div>
-
-            <!-- 남성 정보 div -->
-            <div 
-                style="flex: 1; padding: 10px; text-align: center; border: 1px solid #ddd; margin-left: 5px; border-radius: 8px; cursor: pointer;"
-            >
-                <h3>남성 정보</h3>
-                <p><strong>참여자 수:</strong> {data['m_num_people']}</p>
-                <p><strong>평균 나이:</strong> {data['m_age']:.2f}</p>
-            </div>
-        </div>
-        <div style="text-align: center;">
-            <img src="{url}" style="width:100%; height:auto; max-width: 1080px; border-radius: 8px;"/>
         </div>
     </div>
     """
+
+    template = Template(template_str)
+    return template.render(data=data, url=url)
 
 def network_graph_html(data, main_node_id):
     """
@@ -78,7 +75,7 @@ def network_graph_html(data, main_node_id):
     # Render the template with graph data
     return template.render(graph_data=graph_data)
 
-def render_images_table(images):
+def images_table_html(images):
     """
     images: [{face_id, photo_id, photo_title, age, gender, face_index, file_name}, ...]
     """
@@ -87,12 +84,11 @@ def render_images_table(images):
     <thead>
         <tr>
             <th>Face ID</th>
-            <th>Photo ID(+__index)</th>
+            <th>Photo ID(+index)</th>
             <th>Photo Title</th>
             <th>Age</th>
             <th>Gender</th>
             <th style="display:none;">Face Index</th>
-            <!-- File Name 헤더는 숨김 -->
             <th style="display:none;">File Name</th>
         </tr>
     </thead>
@@ -113,7 +109,6 @@ def render_images_table(images):
             <td>{{ row['age'] }}</td>
             <td>{{ 'Male' if row['gender'] else 'Female'}}</td>
             <td style="display:none;">{{ row['face_index'] }}</td>
-            <!-- File Name 칼럼은 숨김 -->
             <td style="display:none;">{{ row['file_name'] }}</td>
         </tr>
     {% endfor %}

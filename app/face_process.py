@@ -3,7 +3,7 @@ import random
 import logging
 import cv2
 from datetime import datetime
-from config import S3_IMAGE_BUCKET, RESERVED_FACES, IS_FACE_RESTORATION_ENABLED
+from config import S3_IMAGE_BUCKET, RESERVED_FACES, IS_FACE_RESTORATION_ENABLED, MIN_FACE_DETECTION_SCORE
 from app import F_BASE, M_BASE, db, storage, face_detector
 from app.common import update_images_by_face
 from library.gadget import load_and_resize_image
@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 f_color = (255, 0, 255)
 m_color = (0, 255, 0)
+fail_color = (0, 0, 255)
 text_color = (235, 145, 45)
 
 def process_image(image, photo_title, photo_id):
@@ -23,7 +24,7 @@ def process_image(image, photo_title, photo_id):
     if not faces:
         logger.error(f"No faces detected in the image. Please upload a valid image with faces. file_name : {image}.")
         return None
-
+    
     faces = sorted(faces, key=lambda face: face.bbox[0])
     file_name = f"{str(uuid.uuid4())}.jpg"
 
@@ -31,6 +32,12 @@ def process_image(image, photo_title, photo_id):
     for i, face in enumerate(faces): # 얼굴 영역 표시
 
         bbox = face.bbox.astype(int)
+
+        if face.det_score < MIN_FACE_DETECTION_SCORE:
+            cv2.rectangle(img, (bbox[0], bbox[1]), (bbox[2], bbox[3]), fail_color, 2)
+            cv2.putText(img, "Fail", (bbox[0] + 5, bbox[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, fail_color, 2)
+            continue
+
         color = m_color if face.gender else f_color
         cv2.rectangle(img, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
         cv2.putText(img, f" {i}", (bbox[0] + 5, bbox[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
@@ -60,9 +67,13 @@ def process_image(image, photo_title, photo_id):
                 embedding=face.embedding.tolist()
             )
         )
-
-    storage.upload_image(S3_IMAGE_BUCKET, file_name, image=img)
-    db.save_data_batch(face_data_list)
+        
+    if face_data_list:
+        storage.upload_image(S3_IMAGE_BUCKET, file_name, image=img)
+        db.save_data_batch(face_data_list)
+    else:
+        logger.error(f"No faces detected in the image.")
+        return None
 
     return file_name
 

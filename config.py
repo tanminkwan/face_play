@@ -24,6 +24,7 @@ RESERVED_FACES = [
 
 # AI Option
 IS_FACE_RESTORATION_ENABLED = os.getenv("ENABLE_FACE_RESTORATION", "false").lower() == "true"
+MIN_FACE_DETECTION_SCORE = float(os.getenv("MIN_FACE_DETECTION_SCORE", 0.75))
 
 # AI Model configuration
 BUFFALO_L_PATH = "C:\\"

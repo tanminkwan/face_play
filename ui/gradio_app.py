@@ -4,7 +4,7 @@ import gradio as gr
 import pandas as pd
 from app.face_process import process_image, get_image_list, get_average_faces, \
     get_image_url
-from ui.html import average_faces_html, render_images_table
+from ui.html import average_faces_html, images_table_html
 from ui.css import css
 from ui.js import js_to_network_graph_tab, js_send_faceid_to_selectedid
 
@@ -45,7 +45,7 @@ def list_images(photo_id=None, photo_title=None):
     # Sort images by 'file_name' and 'face_index' in ascending order
     images.sort(key=lambda x: (x['file_name'], x['face_index']))
 
-    return render_images_table(images)
+    return images_table_html(images)
 
 def view_image_details(id):
 
@@ -148,8 +148,7 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue", neutral_hue="slate", sec
 
     # --- Tab 3: Average Faces ---
     with gr.Tab("Average Faces"):
-        gr.Markdown("Click below to see aggregate info about the faces and the merged (average) face image.")
-
+        
         average_button = gr.Button("Show Average Faces")
         average_output = gr.HTML(label="Average Faces Details", elem_id="out_html")
 
@@ -158,6 +157,9 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue", neutral_hue="slate", sec
             inputs=None,
             outputs=average_output
         )
+
+        gr.Markdown("Click below buttons and the merged (average) face image.")
+
         with gr.Row():
             female_average_button = gr.Button("Go to Network Graph")
             male_average_button = gr.Button("Go to Network Graph")

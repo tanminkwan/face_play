@@ -111,14 +111,6 @@ if __name__ == "__main__":
     restorer = FaceRestorer(model_path="C:\\models\\codeformer-v0.1.0.pth", use_gpu=True)
     
     # 여러 이미지 처리
-    img1 = cv2.imread("cap1.jpg")
+    img1 = cv2.imread("E:\\faces_pjt\\swapped_image.jpg")
     restored_img1 = restorer.restore(img1)
-    cv2.imwrite('output1.jpg', restored_img1)
-    
-    img2 = cv2.imread("cap2.jpg")
-    restored_img2 = restorer.restore(img2)
-    cv2.imwrite('output2.jpg', restored_img2)
-    
-    img3 = cv2.imread("cap3.jpg")
-    restored_img3 = restorer.restore(img3)
-    cv2.imwrite('output3.jpg', restored_img3)
+    cv2.imwrite('E:\\faces_pjt\\restored_image.jpg', restored_img1)
