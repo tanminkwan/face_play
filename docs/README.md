@@ -87,6 +87,9 @@ A. 평균은 개별 특징이 상쇄되어 **대칭적이고 부드러운 인상
 
 ### 1. 준비 모듈
 - 라이브러리
+```bash
+pip install numpy opencv-python insightface
+```
 ```python
 import numpy as np
 import cv2
