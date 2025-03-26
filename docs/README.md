@@ -32,16 +32,15 @@
     ![](./images/upload_image.jpg)
 2. 얼굴 임베딩 추출 (embedding: 얼굴의 정체성을 표현하는 벡터)
     - [그림] 군중속에서 수만은 얼굴 detection 결과
-        녹색 box는 남자, 분홍 box는 여자, 붉은 box는 낮은 인식율(`det_score`)로 제외. 숫자는 그림내 얼굴 식별번호
+    - 녹색 box는 남자, 분홍 box는 여자, 붉은 box는 낮은 인식율(`det_score`)로 제외. 숫자는 그림내 얼굴 식별번호
     ![](./images/detection1.jpg)
-3. 결과 이미지 저장 및 조회 (Object Storage)
+3. 이미지 조회 (Object Storage)
     ![](./images/image_list.jpg)
-4. 평균 얼굴 임베딩 생성 (center representation)
-5. 평균 얼굴 이미지 생성
-    ![](./images/faces_mean.jpg)
+4. 평균 얼굴 임베팅 및 이미지 생성
+    ![](./images/average_faces.jpg)
 5. 평균 얼굴과 가장 유사한 얼굴 찾기 (Vector DB)
     ![](./images/newtwork_graph.jpg)
-7. 얼굴 간 유사도를 관계로 하는 Graph DB 구성
+6. 얼굴 간 유사도를 관계로 하는 Graph DB 구성
 
 ---
 
@@ -57,7 +56,7 @@
 - 3인 얼굴 사진:  
   ![3인 얼굴](./images/3races.jpg)
 
-- 임베딩 분포 시각화:  
+- 3인 및 평균 얼굴 임베딩 분포 시각화:
   ![임베딩 분포](./images/3races_chart.jpg)
 
 - 평균 얼굴 이미지:  
