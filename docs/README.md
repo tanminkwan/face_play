@@ -155,6 +155,7 @@ cv2.imwrite("mean_face_result.jpg", mean_image)
 
 ## 🚀 향후 발전 방향
 
+- Gradio를 SPA + Rest 서버 방식으로 변경
 - 유사도 기반 얼굴 추천 기능 추가 (예: 숨겨진 가족 찾기) (Graph DB 활용)
 - 얼굴 간 관계 시각화 (Graph DB 활용)
 - 평균 얼굴의 시계열 변화 추적 등
