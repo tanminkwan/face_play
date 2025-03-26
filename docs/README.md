@@ -29,23 +29,27 @@
 
 ### 2. 앱 동작 흐름
 1. UI를 통해 사진 촬영 및 업로드 (`Gradio`)
+   
     ![](./images/upload_image.jpg)
-2. 얼굴 임베딩 추출 (embedding: 얼굴의 정체성을 표현하는 벡터)
-    - [그림] 군중속에서 수많은 얼굴 detection 결과
+2. 얼굴 임베딩 추출 (embedding: 얼굴의 정체성을 표현하는 벡터) 및 저장
     - 녹색 box는 남자, 분홍 box는 여자, 붉은 box는 낮은 인식율(`det_score < 0.75`)로 제외. 숫자는 그림내 얼굴 식별번호
+    - 유효하게 식별된 얼굴에 대한 embedding 정보와 기타 분석 정보를 `Vector DB`에 저장장
   
     ![](./images/detection1.jpg)
-3. 이미지 검색 및 조회 (`Object Storage`)
+3. 얼굴 검색 및 조회
+    - 원본 이미지가 아닌 증명 사진 느낌의 Template에 얼굴만 교체된 이미지가 조회됨
    
     ![](./images/image_list.jpg)
-4. 평균 얼굴 임베딩 및 이미지 생성 그리고 조회
+4. 평균 얼굴 생성 및 조회
+    - 남녀가 같이 있는 Template 이미지에 평균 남녀 얼굴이 Update 되어 조회됨
    
     ![](./images/average_faces.jpg)
-5. 평균 얼굴 또는 특정 얼굴과 가장 유사한 얼굴 찾기 (`Vector DB`)
+5. 평균 얼굴 또는 특정 얼굴과 가장 유사한 얼굴 찾기
+    - Network Graph를 통해 높은 유사도를 가진(`score > 0.2`) 얼굴들과의 관계를 시각적으로 보여줌
    
     ![](./images/network_graph.jpg)
 6. 얼굴 간 유사도를 관계로 하는 `Graph DB` 구성
-    <아직 진행 안함>
+    - <아직 진행 안함>
 ---
 
 ## 👤 평균 얼굴이란?
@@ -90,10 +94,10 @@ from insightface.app.common import Face
 
 ### 2. 얼굴 임베딩 추출
 ```python
-detector = FaceAnalysis(name='buffalo_l', root=BUFFALO_L_PATH)
+detector = FaceAnalysis(name='buffalo_l', root="<buffalo_l model path>")
 detector.prepare(ctx_id=-1)
 
-image = cv2.imread("c:/three_faces_image.jpg")
+image = cv2.imread("three_faces_image.jpg")
 faces = detector.get(image)
 
 emb1 = faces[0].embedding
@@ -112,22 +116,22 @@ mean_face = Face()
 mean_face.embedding = center_emb
 ```
 
-### 5. Scaffold 얼굴 설정
-> Scaffold 얼굴 = 평균 임베딩을 적용할 **기반 이미지** (즉, 얼굴의 외형 틀)
+### 5. template 이미지 설정
+> template 이미지 = 평균 임베딩을 적용할 **깔판 이미지**
 
 ```python
-scaffold_image = cv2.imread("c:/scaffold_image.jpg")
-scaffold_face = detector.get(scaffold_image)[0]  # 얼굴 하나만 존재
+template_image = cv2.imread("template_image.jpg")
+template_face = detector.get(template_image)[0]  # 얼굴 하나만 존재
 ```
 
 ### 6. 평균 얼굴로 스와핑 및 저장
-- `scaffold_image`의 `scaffold_face`를 `mean_face`로 바꿈
+- `template_image`의 `template_face`를 `mean_face`로 바꿈
 ```python
 swapper = model_zoo.get_model("<swapper_model_path>")
 swapper.prepare(ctx_id=0)  # GPU 사용 시 0, CPU는 -1
 
-mean_image = swapper.get(scaffold_image, scaffold_face, mean_face)
-cv2.imwrite("c:/mean_face_result.jpg", mean_image)
+mean_image = swapper.get(template_image, template_face, mean_face)
+cv2.imwrite("mean_face_result.jpg", mean_image)
 ```
 
 ---
@@ -136,17 +140,15 @@ cv2.imwrite("c:/mean_face_result.jpg", mean_image)
 
 - **embedding**은 마치 유전자 정보처럼 각 얼굴의 핵심을 담고 있음
 - 여러 얼굴의 임베딩을 평균 내면, 줄기세포처럼 **잠재력을 가진 벡터**가 생성됨
-- 이 임베딩을 **Scaffold 얼굴(기반 이미지)** 위에 이식하면
+- 이 임베딩을 **Template 얼굴(깔판 이미지)** 위에 이식하면
   → 마치 세포가 조직 위에서 자라듯, **새로운 얼굴 이미지**가 만들어짐
-
-> Scaffold = 실험에서 쓰이는 배양 틀과 같은 개념. 단순히 배경이 아니라, 결과를 좌우하는 핵심 구조물!
 
 ---
 
 ## 🚀 향후 발전 방향
 
-- 유사도 기반 얼굴 추천 기능 추가 (예: 숨겨진 가족 찾기) (Vector DB 활용)
-- 얼굴 간 관계 시각화 (Graph DB)
+- 유사도 기반 얼굴 추천 기능 추가 (예: 숨겨진 가족 찾기) (Graph DB 활용)
+- 얼굴 간 관계 시각화 (Graph DB 활용)
 - 평균 얼굴의 시계열 변화 추적 등
 - 얼굴 외에 다른 특징(음성, 글 등)으로 확장 가능성 탐색
 
