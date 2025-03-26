@@ -29,19 +29,19 @@
 
 ### 2. 앱 동작 흐름
 1. UI를 통해 사진 촬영 및 업로드 (Gradio 사용)
-    ![](./images/upload_image.jpg)
+    <img src="./images/upload_image.jpg" width: 100%; max-width: 400px;/>
 2. 얼굴 임베딩 추출 (embedding: 얼굴의 정체성을 표현하는 벡터)
     - [그림] 군중속에서 수만은 얼굴 detection 결과
     - 녹색 box는 남자, 분홍 box는 여자, 붉은 box는 낮은 인식율(`det_score`)로 제외. 숫자는 그림내 얼굴 식별번호
     ![](./images/detection1.jpg)
-3. 이미지 조회 (Object Storage)
+3. 이미지 검색 및 조회 (Object Storage)
     ![](./images/image_list.jpg)
 4. 평균 얼굴 임베팅 및 이미지 생성
     ![](./images/average_faces.jpg)
-5. 평균 얼굴과 가장 유사한 얼굴 찾기 (Vector DB)
+5. 평균 얼굴 또는 특정 얼굴과 가장 유사한 얼굴 찾기 (Vector DB)
     ![](./images/network_graph.jpg)
 6. 얼굴 간 유사도를 관계로 하는 Graph DB 구성
-
+    <아직 진행 안함>
 ---
 
 ## 👤 평균 얼굴이란?
