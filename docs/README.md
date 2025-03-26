@@ -23,15 +23,15 @@
 ## ✅ 프로젝트 전개 과정
 
 ### 1. 아이디어 구상
-- 관심 기술: Gradio, Object Storage, Vector DB, Graph DB
-- 과거 "AI가 그린 한국인 평균 얼굴" 기사에서 착안
-- **"회사를 대표하는 얼굴을 찾아라"** 앱 구상
+- 개요 : 경량 얼굴인식 AI 모델을 활용. UI를 통해 사용자들이 얼굴 사진을 업로드하고, 주기적으로 평균 얼굴을 계산해서 가장 평균 얼굴에 가까운 얼굴이 Win 하는 게임 앰
+- 관심 기술: 경량 얼굴인식 AI, Gradio, Object Storage, Vector DB, Graph DB
+- 과거 "AI가 그린 한국인 평균 얼굴" 기사에서 착안, **"회사를 대표하는 얼굴을 찾아라"** 이벤트성 앱 구상
 
 ### 2. 앱 동작 흐름
 1. UI를 통해 사진 촬영 및 업로드 (`Gradio`)
     <img src="./images/upload_image.jpg" style="width: 100%; max-width: 400px;" />
 2. 얼굴 임베딩 추출 (embedding: 얼굴의 정체성을 표현하는 벡터)
-    - [그림] 군중속에서 수만은 얼굴 detection 결과
+    - [그림] 군중속에서 수많은 얼굴 detection 결과
     - 녹색 box는 남자, 분홍 box는 여자, 붉은 box는 낮은 인식율(`det_score < 0.75`)로 제외. 숫자는 그림내 얼굴 식별번호
     ![](./images/detection1.jpg)
 3. 이미지 검색 및 조회 (`Object Storage`)
