@@ -39,7 +39,7 @@
 4. 평균 얼굴 임베팅 및 이미지 생성
     ![](./images/average_faces.jpg)
 5. 평균 얼굴과 가장 유사한 얼굴 찾기 (Vector DB)
-    ![](./images/newtwork_graph.jpg)
+    ![](./images/network_graph.jpg)
 6. 얼굴 간 유사도를 관계로 하는 Graph DB 구성
 
 ---
