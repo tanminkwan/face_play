@@ -28,19 +28,19 @@
 - **"회사를 대표하는 얼굴을 찾아라"** 앱 구상
 
 ### 2. 앱 동작 흐름
-1. UI를 통해 사진 촬영 및 업로드 (Gradio 사용)
+1. UI를 통해 사진 촬영 및 업로드 (`Gradio`)
     <img src="./images/upload_image.jpg" style="width: 100%; max-width: 400px;" />
 2. 얼굴 임베딩 추출 (embedding: 얼굴의 정체성을 표현하는 벡터)
     - [그림] 군중속에서 수만은 얼굴 detection 결과
-    - 녹색 box는 남자, 분홍 box는 여자, 붉은 box는 낮은 인식율(`det_score`)로 제외. 숫자는 그림내 얼굴 식별번호
+    - 녹색 box는 남자, 분홍 box는 여자, 붉은 box는 낮은 인식율(`det_score < 0.75`)로 제외. 숫자는 그림내 얼굴 식별번호
     ![](./images/detection1.jpg)
-3. 이미지 검색 및 조회 (Object Storage)
+3. 이미지 검색 및 조회 (`Object Storage`)
     ![](./images/image_list.jpg)
-4. 평균 얼굴 임베팅 및 이미지 생성
+4. 평균 얼굴 임베딩 및 이미지 생성 그리고 조회
     ![](./images/average_faces.jpg)
-5. 평균 얼굴 또는 특정 얼굴과 가장 유사한 얼굴 찾기 (Vector DB)
+5. 평균 얼굴 또는 특정 얼굴과 가장 유사한 얼굴 찾기 (`Vector DB`)
     ![](./images/network_graph.jpg)
-6. 얼굴 간 유사도를 관계로 하는 Graph DB 구성
+6. 얼굴 간 유사도를 관계로 하는 `Graph DB` 구성
     <아직 진행 안함>
 ---
 
@@ -56,7 +56,7 @@
 - 3인 얼굴 사진:  
   ![3인 얼굴](./images/3races.jpg)
 
-- 3인 및 평균 얼굴 임베딩 분포 시각화:
+- 3인 + 평균 얼굴 임베딩 분포 시각화:
   ![임베딩 분포](./images/3races_chart.jpg)
 
 - 평균 얼굴 이미지:  
@@ -103,7 +103,7 @@ emb3 = faces[2].embedding
 center_emb = np.mean([emb1, emb2, emb3], axis=0)
 ```
 
-### 4. 평균 임베딩을 Face 객체에 주입
+### 4. 평균 임베딩을 빈 껍데기 Face 객체에 주입
 ```python
 mean_face = Face()
 mean_face.embedding = center_emb
@@ -118,6 +118,7 @@ scaffold_face = detector.get(scaffold_image)[0]  # 얼굴 하나만 존재
 ```
 
 ### 6. 평균 얼굴로 스와핑 및 저장
+- `scaffold_image`의 `scaffold_face`를 `mean_face`로 바꿈
 ```python
 swapper = model_zoo.get_model("<swapper_model_path>")
 swapper.prepare(ctx_id=0)  # GPU 사용 시 0, CPU는 -1
