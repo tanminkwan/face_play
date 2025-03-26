@@ -29,7 +29,7 @@
 
 ### 2. 앱 동작 흐름
 1. UI를 통해 사진 촬영 및 업로드 (Gradio 사용)
-    <img src="./images/upload_image.jpg" width: 100%; max-width: 400px;/>
+    <img src="./images/upload_image.jpg" style="width: 100%; max-width: 400px;" />
 2. 얼굴 임베딩 추출 (embedding: 얼굴의 정체성을 표현하는 벡터)
     - [그림] 군중속에서 수만은 얼굴 detection 결과
     - 녹색 box는 남자, 분홍 box는 여자, 붉은 box는 낮은 인식율(`det_score`)로 제외. 숫자는 그림내 얼굴 식별번호
