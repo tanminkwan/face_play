@@ -39,7 +39,7 @@ if __name__ == '__main__':
     scheduler.add_job(
         update_mean_faces, 
         'interval', 
-        minutes=1, 
+        minutes=3, 
         max_instances=1,
         args=[mean_face_imgs, mean_f_face_img, mean_m_face_img],  # 인자 전달
         )

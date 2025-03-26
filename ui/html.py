@@ -7,7 +7,7 @@ def average_faces_html(data, url):
     template_str = """
     <div style="width: 100%; max-width: 1080px; margin: auto; font-family: sans-serif; position: relative;">
         <img src="{{ url }}" style="width:100%; height:auto; max-width: 1080px; border-radius: 8px;"/>
-        <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0, 0, 0, 0.5); color: #fff; padding: 10px; border-radius: 0 0 8px 8px;">
+        <div id="colorOverrideContainer" style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0, 0, 0, 0.5); color: #fff !important; padding: 10px; border-radius: 0 0 8px 8px;">
             <div style="display: flex; justify-content: space-between;">
                 <!-- 여성 정보 div -->
                 <div style="flex: 1; text-align: center;">

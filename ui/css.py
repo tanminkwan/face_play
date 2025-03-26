@@ -20,4 +20,7 @@ img {
     max-height: none !important;
     overflow: visible !important;
 }
+#colorOverrideContainer * {
+    color: #fff !important;
+}
 """
