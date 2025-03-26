@@ -32,6 +32,7 @@
     ![](./images/upload_image.jpg)
 2. 얼굴 임베딩 추출 (embedding: 얼굴의 정체성을 표현하는 벡터)
     - [그림] 군중속에서 얼글 detection 결과
+    녹색 box는 남자, 분홍 box는 여자, 붉은 box는 낮은 인식율(`det_score`)로 제외. 숫자는 그림내 얼굴 식별번호
     ![](./images/detection1.jpg)
 3. 결과 이미지 저장 및 조회 (Object Storage)
 4. 평균 얼굴 임베딩 생성 (center representation)
