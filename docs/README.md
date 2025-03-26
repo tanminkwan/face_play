@@ -86,6 +86,7 @@ A. 평균은 개별 특징이 상쇄되어 **대칭적이고 부드러운 인상
 ## 📚 평균 얼굴 생성 과정 (code 예시)
 
 ### 1. 준비 모듈
+- 라이브러리
 ```python
 import numpy as np
 import cv2
@@ -93,7 +94,9 @@ from insightface import model_zoo
 from insightface.app import FaceAnalysis
 from insightface.app.common import Face
 ```
-
+- 모델 (다운 받아 적당한 위치에 배)
+  - `buffalo_l` : https://github.com/deepinsight/insightface/releases
+  - `inswapper_128` : https://huggingface.co/ezioruan/inswapper_128.onnx/tree/main
 ### 2. 얼굴 임베딩 추출
 ```python
 detector = FaceAnalysis(name='buffalo_l', root="<buffalo_l model path>")
