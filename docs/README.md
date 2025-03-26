@@ -35,6 +35,7 @@
         녹색 box는 남자, 분홍 box는 여자, 붉은 box는 낮은 인식율(`det_score`)로 제외. 숫자는 그림내 얼굴 식별번호
     ![](./images/detection1.jpg)
 3. 결과 이미지 저장 및 조회 (Object Storage)
+    ![](./images/image_list.jpg)
 4. 평균 얼굴 임베딩 생성 (center representation)
 5. 평균 얼굴 이미지 생성
     ![](./images/faces_mean.jpg)
