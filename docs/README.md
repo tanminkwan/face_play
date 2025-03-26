@@ -1,6 +1,6 @@
 # Huchu Project
 
-**Huchu 프로젝트**는 2025년 3월 한 달 동안, 시간 제한을 두고 UI 프레임워크(Gradio, Streamlit 등), Object Storage, Vector DB, Graph DB 등 다양한 기술을 직접 학습하고 경험하기 위한 개인 소프트웨어 개발 프로젝트입니다. 프로젝트 기반 학습(Project-Based Learning)을 지향하며, 결과물 자체보다는 학습 과정과 경험에 초점을 맞추고 있습니다.
+**Huchu 프로젝트**는 2025년 3월 한 달 동안, UI 프레임워크(Gradio, Streamlit 등), Object Storage, Vector DB, Graph DB 등 다양한 기술을 학습하고 경험하기 위한 개인 소프트웨어 개발 프로젝트입니다. 프로젝트 기반 학습(Project-Based Learning)을 지향하며, 결과 자체보다는 학습 과정과 경험에 초점을 맞추고 있습니다.
 
 "Huchu(후추)"는 6개월 된 고양이의 이름이며, 최근 상한 음식을 먹고 세상을 떠났습니다. 이번 프로젝트는 후추를 추모하는 마음을 담아 이름 붙여졌습니다.
 
