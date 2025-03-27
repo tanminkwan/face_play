@@ -38,7 +38,7 @@
     - FastAPI : 동시 요청 처리, 확장성을 위해 Gradio app을 FastAPI app에 mount 하고 Web 서버는 Uvicorn 사용
     - jinja2 : 사용자 정의 html 구현을 위해 사용
 3. Database
-    - Qdrant : 안써봤고, 확장성, Cosine 유사성 함수기반 Top-N query 가능, ElasticSearch와 query 문법 비슷해서 선택
+    - Qdrant : 안써봤다는 매력, 확장성, Cosine 유사성 함수기반 Top-N query 가능, ElasticSearch와 query 문법 비슷해서 선택
 4. 파일 저장 및 배포
     - MinIO : Cloud를 사용하지 않는 한 달리 대안이 없었음
 
