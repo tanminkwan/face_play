@@ -55,7 +55,8 @@
   
     ![](./docs/images/detection1.jpg)
 3. 얼굴 검색 및 조회
-    - 원본 이미지가 아닌 증명 사진 느낌의 Template에 얼굴만 교체된 이미지가 조회됨
+    - 자신 또는 다른 사람이 등록한 얼굴과 원본 사진을 조회
+    - 각각의 얼굴은 증명 사진 느낌의 Template에 옴겨져 조회됨
    
     ![](./docs/images/image_list.jpg)
 4. 평균 얼굴 생성 및 조회
