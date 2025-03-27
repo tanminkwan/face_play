@@ -1,7 +1,6 @@
 import logging
 import re
 import gradio as gr
-import pandas as pd
 from app.face_process import process_image, get_image_list, get_average_faces, \
     get_image_url
 from ui.html import average_faces_html, images_table_html

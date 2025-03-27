@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import gradio as gr
 from app.routes import router as app_router
-from ui.gradio_app import demo  # Gradio 앱 UI
+from app.gradio_app import demo  # Gradio 앱 UI
 
 app = FastAPI()
 
