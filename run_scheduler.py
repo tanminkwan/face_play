@@ -3,6 +3,7 @@ import time
 import logging
 from app import storage, face_detector
 from app.jobs import update_mean_faces
+from config import SCHEDULER_INTERVAL_MINUTES
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ if __name__ == '__main__':
     scheduler.add_job(
         update_mean_faces, 
         'interval', 
-        minutes=3, 
+        minutes=SCHEDULER_INTERVAL_MINUTES, 
         max_instances=1,
         args=[mean_face_imgs, mean_f_face_img, mean_m_face_img],  # 인자 전달
         )

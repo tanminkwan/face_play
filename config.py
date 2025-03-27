@@ -33,3 +33,6 @@ CODEFORMER_MODEL = "C:\\models\\codeformer-v0.1.0.pth"
 #BUFFALO_L_PATH = "/"
 #INSWAPPER_PATH = "/models/inswapper_128.onnx"
 #CODEFORMER_MODEL = "/models/codeformer.pth"
+
+# Scheduler Option
+SCHEDULER_INTERVAL_MINUTES = int(os.getenv("SCHEDULER_INTERVAL_MINUTES", 3))

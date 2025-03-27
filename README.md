@@ -1,180 +1,181 @@
-# face_play
+# Huchu Project
+
+**Huchu 프로젝트**는 2025년 3월 한 달 동안, UI 프레임워크(Gradio, Streamlit 등), Object Storage, Vector DB, Graph DB 등 다양한 기술을 학습하고 경험하기 위한 개인 소프트웨어 개발 프로젝트입니다. 프로젝트 기반 학습(Project-Based Learning)을 지향하며, 결과 자체보다는 학습 과정과 경험에 초점을 맞추고 있습니다.
+
+"Huchu(후추)"는 6개월 된 고양이의 이름이며, 최근 상한 음식을 먹고 세상을 떠났습니다. 이번 프로젝트는 후추를 추모하는 마음을 담아 이름 붙여졌습니다.
+
 ---
-### Installation & Running
-#### 1. MinIO
-##### 1-1. On Windows
-- MinIO : https://min.io/docs/minio/windows/index.html
-  Run Command : `.\minio.exe server C:\minio --console-address :9001`
-##### 1-2. On Docker container
-- MinIO docker compose
-```yaml
-version: '3.8'
-services:
-  minio:
-    image: minio/minio:latest
-    restart: always
-    container_name: minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: admin123
-    command: server /data --console-address ":9001"
-volumes:
-  minio_data:
-```
-##### 1-3. Init
-- Create Bucket
-  Bucker name : `processed-images`, `base-images`
-  Upload Base images : `f_base.jpg`, `m_base.jpg` 를 `base-images` bucket에 upload
-- Create access key
-  Create and paste them to `S3_ACCESS_KEY`, `S3_SECRET_KEY` in `.env`
-#### 2. Qdrant
-- 선정이유
-  - http 만 사용해서 별도의 통신 driver 필요없음. 특히 neo4j apoc 용 driver 필요없음
-  - 유사도기준 query 가능
-  - scaling 가능
-##### 2-1. On Windows
-- Qdrant : https://github.com/qdrant/qdrant/releases
-  Run Command : `.\qdrant.exe --uri http://127.0.0.1:6333`
-##### 2-2. On Docker container
-- Qdrant docker compose
-```yaml
-version: "3.8"
-services:
-  qdrant:
-    image: qdrant/qdrant:latest
-    restart: always
-    container_name: qdrant
-    ports:
-      - "6333:6333"  # Qdrant 기본 포트
-    volumes:
-      - qdrant_data:/qdrant/storage  # 데이터를 영구적으로 저장하기 위한 Volume 설정
-volumes:
-  qdrant_data:
-    driver: local
-```
-##### 2-3. Init
-- Create Collection
-  On Windows :
-  ```bash
-  curl -X PUT "http://127.0.0.1:6333/collections/face_embeddings" -H "Content-Type: application/json" -d "{\"vectors\":{\"size\":512,\"distance\":\"Cosine\"}}"
-  ```
-  - Response : 
-  ```json
-  {"result":true,"status":"ok","time":0.3824695}
-  ```
-- Create Index on the collection `face_embeddings`
-  On Windows :
-  ```bash
-  curl -v -X PUT "http://localhost:6333/collections/face_embeddings/index" ^
-  -H "Content-Type: application/json" ^
-  -d "{ \"field_name\": \"photo_id\", \"field_schema\": \"keyword\"}"
-  ```
-  ```bash
-  curl -v -X PUT "http://localhost:6333/collections/face_embeddings/index" ^
-  -H "Content-Type: application/json" ^
-  -d "{\"field_name\": \"created_at\", \"field_schema\": \"float\"}"
-  ```
-##### 2-4. 주요쿼리
-- `` Data 조회
-```bash
-curl -X POST "http://localhost:6333/collections/face_embeddings/points/scroll" -H "Content-Type: application/json" -d "{\"limit\": 100, \"with_payload\": true}"
-```
-```bash
-curl -X POST ^
-  "http://127.0.0.1:6333/collections/face_embeddings/points" ^
-  -H "Content-Type: application/json" ^
-  -d "{\"ids\":[\"00000000-0000-0000-0000-000000000000\",\"11111111-1111-1111-1111-111111111111\"], \"with_vectors\": false}"
-```
-- `face_embeddings` Data 전체 삭제
-```bash
-curl -X POST "http://127.0.0.1:6333/collections/face_embeddings/points/delete" ^
-     -H "Content-Type: application/json" ^
-     --data "{\"filter\": {}}"
-```
-```bash
-curl -X POST "http://127.0.0.1:6333/collections/face_embeddings/points/delete" \
-     -H "Content-Type: application/json" \
-     --data '{"filter": {}}'
-```
-#### 3. Neo4j
-##### 3-1. On Windows
-- Download
-  url : https://neo4j.com/deployment-center/
-  Menu : Graph Database Self-Managed >  Community
-  Windows Excutable 선택 후 download
-- Installation
-  url : https://neo4j.com/docs/operations-manual/current/installation/windows/
-##### 3-2. On Docker container
-- Qdrant : https://github.com/qdrant/qdrant/releases
-  Run Command : `.\qdrant.exe --uri http://127.0.0.1:6333`
 
-#### 4. App
-##### 4-1. **Create a Virtual Environment**  
-   Run the following command to create a virtual environment:
-   ```bash
-   python -m venv venv
-   ```
+## ✨ 프로젝트 특징
 
-##### 4-2. **Activate the Virtual Environment**  
-   - On Windows:
-     ```bash
-     venv\Scripts\activate
-     ```
-   - On Unix/MacOS:
-     ```bash
-     source venv/bin/activate
-     ```
+### 🚀 시간 효율 우선
+- 최대한 GenAI에 의존. (직접 할 수 있어도 GenAI에 위임)
+- 빠른 실현을 목표로 하며, Test-Driven 개발이나 Clean Code 등 팀 협업에서 중요한 개발 원칙은 생략.
+- 모르면 넘어감.
 
-##### 4-3. **Install Dependencies**  
-   Install the packages listed in `requirements.txt`:
-   ```bash
-   pip install -r requirements.txt
-   ```
-##### 4-4. Settings
-- `.env` sample
-```python
-S3_ENDPOINT=www.leebalso.org:9000
-S3_ACCESS_KEY=OwnKCLf4NR7905uuv3pI
-S3_SECRET_KEY=nGhCbM81UHXuyblbMaizDURhUpZYL5h3lBLPyrQO
-S3_SECURE=false
-S3_IMAGE_BUCKET=processed-images
-VECTOR_DB=QDRANT
-VECTOR_DB_HOST=192.168.0.4
-VECTOR_DB_PORT=6333
-```
-- `config.py` sample
-```python
-...
-# AI Model configuration
-BUFFALO_L_PATH = "C:\\"
-INSWAPPER_PATH = "C:\\models\\inswapper_128.onnx"
-CODEFORMER_MODEL = "C:/GitHub/v-face_play/CodeFormer/weights/CodeFormer/codeformer.pth"
-```
+### 🧩 학습 효과 우선
+- 확장성을 위해 추상화 설계에 신경 씀
+- Cloud Native 지향: 컨테이너화 및 스케일 인/아웃 가능해야 함
+- "몰라서 넘긴 것"은 반드시 나중에 알아냄
 
-##### 4-5. **Run the Application**  
-   Start the application by running:
-   ```bash
-   uvicorn run_app:app --host 0.0.0.0 --port 7860
-   ```
-### 4. Dockerize
-```bash
-Downloading: "https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/detection_Resnet50_Final.pth" to /home/hennry/GitHub/v-face_play/lib/python3.10/site-packages/codeformer/weights/facelib/detection_Resnet50_Final.pth
+---
 
-100%|██████████████████████████████████████████████████████████████████████| 104M/104M [00:03<00:00, 30.8MB/s]
-Downloading: "https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/parsing_parsenet.pth" to /home/hennry/GitHub/v-face_play/lib/python3.10/site-packages/codeformer/weights/facelib/parsing_parsenet.pth
+## ✅ 프로젝트 전개
 
-100%|████████████████████████████████████████████████████████████████████| 81.4M/81.4M [00:01<00:00, 60.3MB/s]
-```
-- docker build 
-```bash
-sudo docker build -t face-play .
-```
-###
-- 대량 얼굴 data
+### 1. 서비스 컨셉
+- 앱 개요 : 경량 얼굴인식 AI 모델을 활용. UI를 통해 사용자들이 얼굴 사진을 업로드하고, 주기적으로 평균 얼굴을 계산해서 가장 평균 얼굴에 가까운 얼굴이 Win 하는 게임 앱. 또는, 자신과 얼굴적으로(?) 가까운 사람을 찾아주는 소셜 앱
+- 과거 "AI가 그린 한국인 평균 얼굴" 기사에서 착안, **"회사를 대표하는 얼굴을 찾아라"** 이벤트성 앱 구상
+
+### 2. 필요한 기술 정의
+1. 이미지,얼굴 분석 및 조작
+    - openCV : Visioning 기본 도구
+    - insightface : 얼굴 분석 및 교체
+    - codeformer : 이미지 복구(restoration)
+    - onnxruntime : `.onnx` 타입 AI 모델 실행 엔진
+    - pytorch : `.pth` 타입 AI 모델 실행 프레임워크
+2. Web framework
+    - Gradio : 빠른 UI 개발 유리
+    - FastAPI : 동시 요청 처리, 확장성을 위해 Gradio app을 FastAPI app에 mount 하고 Web 서버는 Uvicorn 사용
+    - jinja2 : 사용자 정의 html 구현을 위해 사용
+3. Database
+    - Qdrant : 안써봤다는 매력, 확장성, Cosine 유사성 함수기반 Top-N query 가능, ElasticSearch와 query 문법 비슷해서 선택
+4. 파일 저장 및 배포
+    - MinIO : Cloud를 사용하지 않는 한 달리 대안이 없었음
+
+### 3. 테스트를 위한 대량 얼굴 데이터 확보
 - https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
--
+
+### 4. 앱 구현
+1. UI를 통해 사진 촬영 및 업로드 (`Gradio`)
+   
+    ![](./docs/images/upload_image.jpg)
+2. 얼굴 임베딩 추출 (embedding: 얼굴의 정체성을 표현하는 벡터) 및 저장
+    - 녹색 box는 남자, 분홍 box는 여자, 붉은 box는 낮은 인식율(`det_score < 0.75`)로 제외. 숫자는 그림내 얼굴 식별번호
+    - 유효하게 식별된 얼굴에 대한 embedding 정보와 기타 분석 정보를 `Vector DB`에 저장
+  
+    ![](./docs/images/detection1.jpg)
+3. 얼굴 검색 및 조회
+    - 원본 이미지가 아닌 증명 사진 느낌의 Template에 얼굴만 교체된 이미지가 조회됨
+   
+    ![](./docs/images/image_list.jpg)
+4. 평균 얼굴 생성 및 조회
+    - 남녀가 같이 있는 Template 이미지에 평균 남녀 얼굴이 Update 되어 조회됨
+   
+    ![](./docs/images/average_faces.jpg)
+5. 평균 얼굴 또는 특정 얼굴과 가장 유사한 얼굴 찾기
+    - Network Graph를 통해 높은 유사도를 가진(`score > 0.2`) 얼굴들과의 관계를 시각적으로 보여줌
+   
+    ![](./docs/images/network_graph.jpg)
+6. 얼굴 간 유사도를 관계로 하는 `Graph DB` 구성
+    - <아직 진행 안함>
+
+---
+
+## 👤 평균 얼굴이란?
+
+- 얼굴을 분석하면 아래와 같은 속성이 생성됩니다:
+  - `bbox`, `kps`, `det_score`, `landmark_3d_68`, `pose`, `landmark_2d_106`, `gender`, `age`, `embedding`
+- 이 중 **embedding**은 해당 얼굴의 정체성을 나타내는 길이 512의 1차원 벡터입니다.
+> ⚡ embedding은 유전자처럼, 개별 얼굴의 핵심 정보를 담고 있음
+- 여러 얼굴의 embedding을 평균 내면, 전체 얼굴을 대표하는 **center representation**이 됩니다.
+
+- 3인 얼굴 사진:  
+  ![3인 얼굴](./docs/images/3races.jpg)
+
+- 3인 + 평균 얼굴 임베딩 분포 시각화(512개의 요소 중 50개만 출력): 
+  ![임베딩 분포](./docs/images/3races_chart.jpg)
+
+- 평균 얼굴 이미지:  
+  ![평균 얼굴](./docs/images/3races_mean.jpg)
+
+> 실제로 평균 얼굴 이미지에는 **중립적이고 부드러운 인상**이 나타남
+
+### 🧵 자주 묻는 질문
+
+#### Q1. 평균을 낼수록 embedding 값이 0에 가까워져 의미 없어지는 거 아닌가요?
+A. 아닙니다. 얼굴 임베딩은 방향성이 중요한 값입니다. 크기(길이)는 중요하지 않으며, 모델은 cosine similarity에 친화적으로 학습되어 있어 방향이 유사하면 유사한 얼굴로 판단합니다. 따라서 스칼라 곱, 평균 연산 등으로 값이 작아져도 의미는 유지됩니다.
+
+#### Q2. 평균 얼굴인데 왜 잘생겼나요? 보통 얼굴처럼 생겨야 하지 않나요?
+A. 평균은 개별 특징이 상쇄되어 **대칭적이고 부드러운 인상**이 강조되는 경우가 많습니다. 이는 사람들이 흔히 "잘생겼다"고 인식하는 특징과 일치할 수 있습니다.
+
+---
+
+## 📚 평균 얼굴 생성 과정 (code 예시)
+
+### 1. 준비 모듈
+- 라이브러리
+```bash
+pip install numpy opencv-python insightface
+```
+```python
+import numpy as np
+import cv2
+from insightface import model_zoo
+from insightface.app import FaceAnalysis
+from insightface.app.common import Face
+```
+- 모델 (다운 받아 적당한 위치에 배치)
+  - `buffalo_l` : https://github.com/deepinsight/insightface/releases
+  - `inswapper_128` : https://huggingface.co/ezioruan/inswapper_128.onnx/tree/main
+### 2. 얼굴 임베딩 추출
+```python
+detector = FaceAnalysis(name='buffalo_l', root="<buffalo_l model path>")
+detector.prepare(ctx_id=-1)
+
+image = cv2.imread("three_faces_image.jpg")
+faces = detector.get(image)
+
+emb1 = faces[0].embedding
+emb2 = faces[1].embedding
+emb3 = faces[2].embedding
+```
+
+### 3. 평균 임베딩 생성
+```python
+center_emb = np.mean([emb1, emb2, emb3], axis=0)
+```
+
+### 4. 평균 임베딩을 빈 껍데기 Face 객체에 주입
+```python
+mean_face = Face()
+mean_face.embedding = center_emb
+```
+
+### 5. template 이미지 설정
+> template 이미지 = 평균 임베딩을 적용할 **깔판 이미지**
+
+```python
+template_image = cv2.imread("template_image.jpg")
+template_face = detector.get(template_image)[0]  # 얼굴 하나만 존재
+```
+
+### 6. 평균 얼굴로 스와핑 및 저장
+- `template_image`의 `template_face`를 `mean_face`로 바꿈
+```python
+swapper = model_zoo.get_model("<swapper_model_path>")
+swapper.prepare(ctx_id=0)  # GPU 사용 시 0, CPU는 -1
+
+mean_image = swapper.get(template_image, template_face, mean_face)
+cv2.imwrite("mean_face_result.jpg", mean_image)
+```
+
+---
+
+## 🧩 비유적 해석: 얼굴 생성은 세포 배양과 닮았다
+
+- **embedding**은 마치 유전자 정보처럼 각 얼굴의 핵심을 담고 있음
+- 여러 얼굴의 임베딩을 평균 내면, 줄기세포처럼 **잠재력을 가진 벡터**가 생성됨
+- 이 임베딩을 **Template 얼굴(깔판 이미지)** 위에 이식하면
+  → 마치 세포가 조직 위에서 자라듯, **새로운 얼굴 이미지**가 만들어짐
+
+---
+
+## 🚀 향후 발전 방향
+
+- 유사도 기반 얼굴 추천 기능 추가 (예: 숨겨진 가족 찾기) (Graph DB 활용)
+- 얼굴 간 관계 시각화 (Graph DB 활용)
+- 평균 얼굴의 시계열 변화 추적 등
+- 얼굴 외에 다른 특징(음성, 글 등)으로 확장 가능성 탐색
+
+## 📦 앱 설치 및 실행 방법
+- 설치 및 실행 매뉴얼: [설치 및 실행 매뉴얼 바로가기](/docs)
