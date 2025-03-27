@@ -38,7 +38,7 @@
 4. 파일 저장 및 배포
   MinIO : Cloud를 사용하지 않는 한 달리 대안이 없었음
 
-### 3. 테스를 위한 대량 얼굴 데이터 확보
+### 3. 테스트를 위한 대량 얼굴 데이터 확보
 - https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
 
 ### 4. 앱 구현
@@ -47,7 +47,7 @@
     ![](./images/upload_image.jpg)
 2. 얼굴 임베딩 추출 (embedding: 얼굴의 정체성을 표현하는 벡터) 및 저장
     - 녹색 box는 남자, 분홍 box는 여자, 붉은 box는 낮은 인식율(`det_score < 0.75`)로 제외. 숫자는 그림내 얼굴 식별번호
-    - 유효하게 식별된 얼굴에 대한 embedding 정보와 기타 분석 정보를 `Vector DB`에 저장장
+    - 유효하게 식별된 얼굴에 대한 embedding 정보와 기타 분석 정보를 `Vector DB`에 저장
   
     ![](./images/detection1.jpg)
 3. 얼굴 검색 및 조회
