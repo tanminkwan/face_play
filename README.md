@@ -1,3 +1,5 @@
+[![Hits](https://hits.sh/github.com/silentsoft/hits.svg)](https://hits.sh/github.com/silentsoft/hits/)
+---
 # Huchu Project
 
 **Huchu 프로젝트**는 2025년 3월 한 달 동안, UI 프레임워크(Gradio, Streamlit 등), Object Storage, Vector DB, Graph DB 등 다양한 기술을 학습하고 경험하기 위한 개인 소프트웨어 개발 프로젝트입니다. 프로젝트 기반 학습(Project-Based Learning)을 지향하며, 결과 자체보다는 학습 과정과 경험에 초점을 맞추고 있습니다.
