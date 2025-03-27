@@ -31,8 +31,8 @@
     - openCV : Visioning 기본 도구
     - insightface : 얼굴 분석 및 교체
     - codeformer : 이미지 복구(restoration)
-    - onnxruntime : .onnx AI 모델 실행 엔진
-    - pytorch : .pth AI 모델 실행 엔진
+    - onnxruntime : `.onnx` 타입 AI 모델 실행 엔진
+    - pytorch : `.pth` 타입 AI 모델 실행 프레임워크
 2. Web framework
     - Gradio : 빠른 UI 개발 유리
     - FastAPI : 동시 요청 처리, 확장성을 위해 Gradio app을 FastAPI app에 mount 하고 Web 서버는 Uvicorn 사용
