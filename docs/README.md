@@ -28,19 +28,19 @@
 
 ### 2. 필요한 기술 정의
 1. 이미지,얼굴 분석 및 조작
-  - openCV : Visioning 기본 도구
-  - insightface : 얼굴 분석 및 교체
-  - codeformer : 이미지 복구(restoration)
-  - onnxruntime : .onnx AI 모델 실행 엔진
-  - pytorch : .pth AI 모델 실행 엔진
+    - openCV : Visioning 기본 도구
+    - insightface : 얼굴 분석 및 교체
+    - codeformer : 이미지 복구(restoration)
+    - onnxruntime : .onnx AI 모델 실행 엔진
+    - pytorch : .pth AI 모델 실행 엔진
 2. Web framework
-  - Gradio : 빠른 UI 개발 유리
-  - FastAPI : 동시 요청 처리, 확장성을 위해 Gradio app을 FastAPI app에 mount 하고 Web 서버는 Uvicorn 사용
-  - jinja2 : 사용자 정의 html 구현을 위해 사용
+    - Gradio : 빠른 UI 개발 유리
+    - FastAPI : 동시 요청 처리, 확장성을 위해 Gradio app을 FastAPI app에 mount 하고 Web 서버는 Uvicorn 사용
+    - jinja2 : 사용자 정의 html 구현을 위해 사용
 3. Database
-  - Qdrant : 안써봤고, 확장성, Cosine 유사성 함수기반 Top-N query 가능, ElasticSearch와 query 문법 비슷해서 선택
+    - Qdrant : 안써봤고, 확장성, Cosine 유사성 함수기반 Top-N query 가능, ElasticSearch와 query 문법 비슷해서 선택
 4. 파일 저장 및 배포
-  - MinIO : Cloud를 사용하지 않는 한 달리 대안이 없었음
+    - MinIO : Cloud를 사용하지 않는 한 달리 대안이 없었음
 
 ### 3. 테스트를 위한 대량 얼굴 데이터 확보
 - https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
