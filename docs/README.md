@@ -22,12 +22,26 @@
 
 ## ✅ 프로젝트 전개
 
-### 1. 앱 컨셉
+### 1. 서비스 컨셉
 - 앱 개요 : 경량 얼굴인식 AI 모델을 활용. UI를 통해 사용자들이 얼굴 사진을 업로드하고, 주기적으로 평균 얼굴을 계산해서 가장 평균 얼굴에 가까운 얼굴이 Win 하는 게임 앱. 또는, 자신과 얼굴적으로(?) 가까운 사람을 찾아주는 소셜 앱
-- 적용 기술: 경량 얼굴인식 AI, Gradio, Object Storage, Vector DB, Graph DB
 - 과거 "AI가 그린 한국인 평균 얼굴" 기사에서 착안, **"회사를 대표하는 얼굴을 찾아라"** 이벤트성 앱 구상
 
-### 2. 앱 구현
+### 2. 필요한 기술 정의
+1. 이미지,얼굴 분석 및 조작
+  openCV, insightface, codeformer, pytorch 등
+2. Web framework
+  Gradio : 빠른 UI 개발 유리
+  FastAPI : 동시 요청 처리, 확장성을 위해 Gradio app을 FastAPI app에 mount 하고 Web 서버는 Uvicorn 사용
+  jinja2 : 사용자 정의 html 구현을 위해 사용
+3. Database
+  Qdrant : 안써봤고, 확장성, Cosine 유사성 함수기반 Top-N query 가능, ElasticSearch와 query 문법 비슷해서 선택
+4. 파일 저장 및 배포
+  MinIO : Cloud를 사용하지 않는 한 달리 대안이 없었음
+
+### 3. 테스를 위한 대량 얼굴 데이터 확보
+- https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
+
+### 4. 앱 구현
 1. UI를 통해 사진 촬영 및 업로드 (`Gradio`)
    
     ![](./images/upload_image.jpg)
@@ -50,7 +64,6 @@
     ![](./images/network_graph.jpg)
 6. 얼굴 간 유사도를 관계로 하는 `Graph DB` 구성
     - <아직 진행 안함>
-
 
 ---
 
@@ -155,7 +168,6 @@ cv2.imwrite("mean_face_result.jpg", mean_image)
 
 ## 🚀 향후 발전 방향
 
-- Gradio를 SPA + Rest 서버 방식으로 변경
 - 유사도 기반 얼굴 추천 기능 추가 (예: 숨겨진 가족 찾기) (Graph DB 활용)
 - 얼굴 간 관계 시각화 (Graph DB 활용)
 - 평균 얼굴의 시계열 변화 추적 등
