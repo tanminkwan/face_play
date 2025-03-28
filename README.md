@@ -1,112 +1,112 @@
 [![Hits](https://hits.sh/github.com/tanminkwan/hits.svg)](https://hits.sh/github.com/tanminkwan/hits/)
 ---
+### 한국어 README 는 ![여기!](./README.ko.md)
+---
 # Huchu Project
 
-**Huchu 프로젝트**는 2025년 3월 한 달 동안, UI 프레임워크(Gradio, Streamlit 등), Object Storage, Vector DB, Graph DB 등 다양한 기술을 학습하고 경험하기 위한 개인 소프트웨어 개발 프로젝트입니다. 프로젝트 기반 학습(Project-Based Learning)을 지향하며, 결과 자체보다는 학습 과정과 경험에 초점을 맞추고 있습니다.
+The **Huchu Project** is a personal software development project running throughout March 2025, aimed at exploring various technologies such as UI frameworks (Gradio, Streamlit, etc.), Object Storage, Vector DBs, and Graph DBs. This project follows a Project-Based Learning approach, prioritizing the learning process and experience over the final outcome.
 
-"Huchu(후추)"는 6개월 된 고양이의 이름이며, 최근 상한 음식을 먹고 세상을 떠났습니다. 이번 프로젝트는 후추를 추모하는 마음을 담아 이름 붙여졌습니다.
-
----
-
-## ✨ 프로젝트 특징
-
-### 🚀 시간 효율 우선
-- 최대한 GenAI에 의존. (직접 할 수 있어도 GenAI에 위임)
-- 빠른 실현을 목표로 하며, Test-Driven 개발이나 Clean Code 등 팀 협업에서 중요한 개발 원칙은 생략.
-- 모르면 넘어감.
-
-### 🧩 학습 효과 우선
-- 확장성을 위해 추상화 설계에 신경 씀
-- Cloud Native 지향: 컨테이너화 및 스케일 인/아웃 가능해야 함
-- "몰라서 넘긴 것"은 반드시 나중에 알아냄
+"Huchu" was the name of a 6-month-old cat who recently passed away after consuming spoiled food. This project is named in remembrance of Huchu.
 
 ---
 
-## ✅ 프로젝트 전개
+## ✨ Project Highlights
 
-### 1. 서비스 컨셉
-- 앱 개요 : 경량 얼굴인식 AI 모델을 활용. UI를 통해 사용자들이 얼굴 사진을 업로드하고, 주기적으로 평균 얼굴을 계산해서 가장 평균 얼굴에 가까운 얼굴이 Win 하는 게임 앱. 또는, 자신과 얼굴적으로(?) 가까운 사람을 찾아주는 소셜 앱
-- 과거 "AI가 그린 한국인 평균 얼굴" 기사에서 착안, **"회사를 대표하는 얼굴을 찾아라"** 이벤트성 앱 구상
+### 🚀 Time Efficiency First
+- Rely as much as possible on GenAI (even for tasks that could be done manually).
+- Prioritize quick implementation over traditional best practices like Test-Driven Development or Clean Code.
+- Skip what is not understood immediately.
 
-### 2. 필요한 기술 정의
-1. 이미지,얼굴 분석 및 조작
-    - openCV : Visioning 기본 도구
-    - insightface : 얼굴 분석 및 교체
-    - codeformer : 이미지 복구(restoration)
-    - onnxruntime : `.onnx` 타입 AI 모델 실행 엔진
-    - pytorch : `.pth` 타입 AI 모델 실행 프레임워크
-2. Web framework
-    - Gradio : 빠른 UI 개발 유리
-    - FastAPI : 동시 요청 처리, 확장성을 위해 Gradio app을 FastAPI app에 mount 하고 Web 서버는 Uvicorn 사용
-    - jinja2 : 사용자 정의 html 구현을 위해 사용
-3. Database
-    - Qdrant : 안써봤다는 매력, 확장성, Cosine 유사성 함수기반 Top-N query 가능, ElasticSearch와 query 문법 비슷해서 선택
-4. 파일 저장 및 배포
-    - MinIO : Cloud를 사용하지 않는 한 달리 대안이 없었음
+### 🧩 Learning Effect First
+- Focus on abstraction and scalability in design.
+- Cloud-Native oriented: Must be containerized and capable of scaling in/out.
+- Anything skipped due to lack of knowledge must be revisited later.
 
-### 3. 테스트를 위한 대량 얼굴 데이터 확보
-- https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
+---
 
-### 4. 앱 구현
-1. UI를 통해 사진 촬영 및 업로드 (`Gradio`)
-   
+## ✅ Project Execution
+
+### 1. Service Concept
+- **App Overview**: A lightweight facial recognition AI-based game/social app where users upload face images. Periodically, an "average face" is computed, and the face closest to this average is declared the winner. Alternatively, the app can help users find others with similar facial features.
+- Inspired by past articles like **"The Average Face of Koreans Drawn by AI"**, conceptualized as an event-based app: **"Find the Face that Represents Your Company!"**
+
+### 2. Required Technologies
+1. **Image & Face Analysis**
+    - `openCV`: Core vision processing tool
+    - `insightface`: Face analysis and swapping
+    - `codeformer`: Image restoration
+    - `onnxruntime`: Execution engine for `.onnx` AI models
+    - `pytorch`: Framework for running `.pth` AI models
+2. **Web Framework**
+    - `Gradio`: Rapid UI development
+    - `FastAPI`: Manages concurrent requests and scales efficiently. The Gradio app is mounted on a FastAPI app, and Uvicorn is used as the web server.
+    - `jinja2`: Used for custom HTML rendering
+3. **Database**
+    - `Qdrant`: Chosen for its novelty, scalability, cosine similarity-based Top-N querying, and Elasticsearch-like query syntax.
+4. **File Storage & Deployment**
+    - `MinIO`: The best alternative when not using cloud storage.
+
+### 3. Obtaining Large-Scale Face Data for Testing
+- [CelebA Dataset](https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
+
+### 4. App Implementation
+1. **Upload and Capture Face Images via UI** (`Gradio`)
+
     ![](./docs/images/upload_image.jpg)
-2. 얼굴 임베딩 추출 (embedding: 얼굴의 정체성을 표현하는 벡터) 및 저장
-    - 녹색 box는 남자, 분홍 box는 여자, 붉은 box는 낮은 인식율(`det_score < 0.75`)로 제외. 숫자는 그림내 얼굴 식별번호
-    - 유효하게 식별된 얼굴에 대한 embedding 정보와 기타 분석 정보를 `Vector DB`에 저장
-  
+2. **Extract Face Embeddings and Store Data**
+    - Green box: Male, Pink box: Female, Red box: Low confidence (`det_score < 0.75`, excluded).
+    - Valid faces are stored in a `Vector DB` along with their embeddings and metadata.
+
     ![](./docs/images/detection1.jpg)
-3. 얼굴 검색 및 조회
-    - 자신 또는 다른 사람이 등록한 얼굴과 원본 사진을 조회
-    - 각각의 얼굴은 원본 사진을 떠나 증명 사진 느낌의 Template 이미지에 옴겨져 조회됨
-   
+3. **Search and View Faces**
+    - Browse previously uploaded face images.
+    - Faces are cropped and displayed as ID-style photos.
+
     ![](./docs/images/image_list.jpg)
-4. 평균 얼굴 생성 및 조회
-    - 남녀가 같이 있는 Template 이미지에 평균 남녀 얼굴이 Update 되어 조회됨
-   
+4. **Generate and Display Average Faces**
+    - A composite image overlays the computed average face onto male and female template images.
+
     ![](./docs/images/average_faces.jpg)
-5. 평균 얼굴 또는 특정 얼굴과 가장 유사한 얼굴 찾기
-    - Network Graph를 통해 높은 유사도를 가진(`score > 0.2`) 얼굴들과의 관계를 시각적으로 보여줌
-   
+5. **Find Faces Most Similar to the Average Face or a Specific Face**
+    - Displays a **network graph** showing relationships between faces with similarity scores above `0.2`.
+
     ![](./docs/images/network_graph.jpg)
-6. 얼굴 간 유사도를 관계로 하는 `Graph DB` 구성
-    - <아직 진행 안함>
+6. **Build a Graph DB Representing Facial Similarities** *(Pending)*
 
 ---
 
-## 👤 평균 얼굴이란?
+## 👤 What Is an Average Face?
 
-- 얼굴을 분석하면 아래와 같은 속성이 생성됩니다:
+- Face analysis generates attributes like:
   - `bbox`, `kps`, `det_score`, `landmark_3d_68`, `pose`, `landmark_2d_106`, `gender`, `age`, `embedding`
-- 이 중 **embedding**은 해당 얼굴의 정체성을 나타내는 길이 512의 1차원 벡터입니다.
-> ⚡ embedding은 유전자처럼, 개별 얼굴의 핵심 정보를 담고 있음
-- 여러 얼굴의 embedding을 평균 내면, 전체 얼굴을 대표하는 **center representation**이 됩니다.
+- The **embedding** is a unique 512-dimensional vector representing facial identity.
+> ⚡ Like DNA, an embedding encodes an individual's facial identity.
+- The **center representation** is calculated by averaging multiple embeddings.
 
-- 3인 얼굴 사진:  
-  ![3인 얼굴](./docs/images/3races.jpg)
+- **Three-person face photo:**  
+  ![](./docs/images/3races.jpg)
 
-- 3인 + 평균 얼굴 임베딩 분포 시각화(512개의 요소 중 50개만 출력): 
-  ![임베딩 분포](./docs/images/3races_chart.jpg)
+- **Embedding distribution visualization (50 out of 512 values displayed):**  
+  ![](./docs/images/3races_chart.jpg)
 
-- 평균 얼굴 이미지:  
-  ![평균 얼굴](./docs/images/3races_mean.jpg)
+- **Generated average face image:**  
+  ![](./docs/images/3races_mean.jpg)
 
-> 실제로 평균 얼굴 이미지에는 **중립적이고 부드러운 인상**이 나타남
+> Average faces tend to have **neutral and soft features**.
 
-### 🧵 자주 묻는 질문
+### 🧵 FAQs
 
-#### Q1. 평균을 낼수록 embedding 값이 0에 가까워져 의미 없어지는 거 아닌가요?
-A. 아닙니다. 얼굴 임베딩은 방향성이 중요한 값입니다. 크기(길이)는 중요하지 않으며, 모델은 cosine similarity에 친화적으로 학습되어 있어 방향이 유사하면 유사한 얼굴로 판단합니다. 따라서 스칼라 곱, 평균 연산 등으로 값이 작아져도 의미는 유지됩니다.
+#### Q1. Does averaging embeddings make them meaningless by bringing values closer to zero?
+A. No, face embeddings rely on direction rather than magnitude. AI models trained with cosine similarity remain effective even if embedding values decrease in size.
 
-#### Q2. 평균 얼굴인데 왜 잘생겼나요? 보통 얼굴처럼 생겨야 하지 않나요?
-A. 평균은 개별 특징이 상쇄되어 **대칭적이고 부드러운 인상**이 강조되는 경우가 많습니다. 이는 사람들이 흔히 "잘생겼다"고 인식하는 특징과 일치할 수 있습니다.
+#### Q2. Why does the average face look attractive instead of ordinary?
+A. The averaging process cancels out extreme features, often emphasizing **symmetry and smoothness**, which align with common perceptions of attractiveness.
 
 ---
 
-## 📚 평균 얼굴 생성 과정 (code 예시)
+## 📚 How to Generate an Average Face (Code Example)
 
-### 1. 준비 모듈
-- 라이브러리
+### 1. Install Required Modules
 ```bash
 pip install numpy opencv-python insightface
 ```
@@ -117,10 +117,11 @@ from insightface import model_zoo
 from insightface.app import FaceAnalysis
 from insightface.app.common import Face
 ```
-- 모델 (다운 받아 적당한 위치에 배치)
-  - `buffalo_l` : https://github.com/deepinsight/insightface/releases
-  - `inswapper_128` : https://huggingface.co/ezioruan/inswapper_128.onnx/tree/main
-### 2. 얼굴 임베딩 추출
+- **Download required models:**
+  - `buffalo_l`: [Download](https://github.com/deepinsight/insightface/releases)
+  - `inswapper_128`: [Download](https://huggingface.co/ezioruan/inswapper_128.onnx/tree/main)
+
+### 2. Extract Face Embeddings
 ```python
 detector = FaceAnalysis(name='buffalo_l', root="<buffalo_l model path>")
 detector.prepare(ctx_id=-1)
@@ -133,30 +134,27 @@ emb2 = faces[1].embedding
 emb3 = faces[2].embedding
 ```
 
-### 3. 평균 임베딩 생성
+### 3. Compute the Average Embedding
 ```python
 center_emb = np.mean([emb1, emb2, emb3], axis=0)
 ```
 
-### 4. 평균 임베딩을 빈 껍데기 Face 객체에 주입
+### 4. Inject Average Embedding into a Placeholder Face Object
 ```python
 mean_face = Face()
 mean_face.embedding = center_emb
 ```
 
-### 5. template 이미지 설정
-> template 이미지 = 평균 임베딩을 적용할 **깔판 이미지**
-
+### 5. Set Template Image
 ```python
 template_image = cv2.imread("template_image.jpg")
-template_face = detector.get(template_image)[0]  # 얼굴 하나만 존재
+template_face = detector.get(template_image)[0]  # Only one face should be present
 ```
 
-### 6. 평균 얼굴로 스와핑 및 저장
-- `template_image`의 `template_face`를 `mean_face`로 바꿈
+### 6. Swap Template Face with the Average Face
 ```python
 swapper = model_zoo.get_model("<swapper_model_path>")
-swapper.prepare(ctx_id=0)  # GPU 사용 시 0, CPU는 -1
+swapper.prepare(ctx_id=0)  # Use 0 for GPU, -1 for CPU
 
 mean_image = swapper.get(template_image, template_face, mean_face)
 cv2.imwrite("mean_face_result.jpg", mean_image)
@@ -164,21 +162,12 @@ cv2.imwrite("mean_face_result.jpg", mean_image)
 
 ---
 
-## 🧩 비유적 해석: 얼굴 생성은 세포 배양과 닮았다
+## 🚀 Future Directions
+- Add similarity-based face recommendations (e.g., "Find a long-lost relative") using Graph DB.
+- Visualize face relationships via Graph DB.
+- Track average face evolution over time.
+- Expand beyond faces (e.g., voice, handwriting analysis).
 
-- **embedding**은 마치 유전자 정보처럼 각 얼굴의 핵심을 담고 있음
-- 여러 얼굴의 임베딩을 평균 내면, 줄기세포처럼 **잠재력을 가진 벡터**가 생성됨
-- 이 임베딩을 **Template 얼굴(깔판 이미지)** 위에 이식하면
-  → 마치 세포가 조직 위에서 자라듯, **새로운 얼굴 이미지**가 만들어짐
+## 📦 Installation & Execution
+- See the [Installation Guide](/docs) for setup instructions.
 
----
-
-## 🚀 향후 발전 방향
-
-- 유사도 기반 얼굴 추천 기능 추가 (예: 숨겨진 가족 찾기) (Graph DB 활용)
-- 얼굴 간 관계 시각화 (Graph DB 활용)
-- 평균 얼굴의 시계열 변화 추적 등
-- 얼굴 외에 다른 특징(음성, 글 등)으로 확장 가능성 탐색
-
-## 📦 앱 설치 및 실행 방법
-- 설치 및 실행 매뉴얼: [설치 및 실행 매뉴얼 바로가기](/docs)
