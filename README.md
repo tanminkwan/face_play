@@ -1,6 +1,6 @@
 [![Hits](https://hits.sh/github.com/tanminkwan/hits.svg)](https://hits.sh/github.com/tanminkwan/hits/)
 ---
-### 한국어 README 는 ![여기!](./README.ko.md)
+### 한국어 README 는 [여기!](./README.ko.md)
 ---
 # Huchu Project
 
